@@ -19,8 +19,8 @@ export default defineConfig({
                 background_color: "#faf6f0",
                 display: "standalone",
                 orientation: "portrait",
-                scope: "/operations-log/",
-                start_url: "/operations-log/",
+                scope: "/",
+                start_url: "/",
                 categories: ["productivity", "health", "personalization"],
                 icons: [
                     { src: "icon-192.png", sizes: "192x192", type: "image/png" },
