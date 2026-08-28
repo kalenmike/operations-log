@@ -107,7 +107,7 @@ export function ExecuteView({
                   </span>
                   <span className={`ml-auto text-xs ${isActive ? "text-parchment-300" : ""}`}>
                     {hasData ? (
-                      <span className="text-gold-500">{"★".repeat(Math.min(checkin.moodRating, 3))}</span>
+                      <span className="text-gold-500">{"★".repeat(checkin.moodRating)}</span>
                     ) : isToday ? (
                       <span className="text-ink-300">○</span>
                     ) : (

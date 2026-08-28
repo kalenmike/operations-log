@@ -83,6 +83,20 @@ export function getWeekNumber(startDate: string): number {
   return Math.ceil(getDayOfYear(start) / 7);
 }
 
+export function getWeekStartsInYear(year: number): string[] {
+  const first = getMonday(new Date(year, 0, 1));
+  const last = getMonday(new Date(year, 11, 31));
+  const out: string[] = [];
+  let cur = first;
+  let guard = 0;
+  while (cur <= last && guard < 60) {
+    out.push(formatDate(cur));
+    cur = addWeeks(cur, 1);
+    guard += 1;
+  }
+  return out;
+}
+
 export function createEmptyWeek(startDate: string) {
   return {
     startDate,

@@ -3,17 +3,17 @@ import type { WeekEntry } from "../types";
 import { Performance } from "./Performance";
 import { ExportImport } from "./ExportImport";
 import { SettingsPanel } from "./SettingsPanel";
+import { YearOverview } from "./YearOverview";
 
 interface ArchiveViewProps {
   weeks: WeekEntry[];
-  currentWeekId: string;
   onImported: () => void;
   onExported: (dateIso: string) => void;
 }
 
 type ArchiveTab = "metrics" | "data";
 
-export function ArchiveView({ weeks, currentWeekId, onImported, onExported }: ArchiveViewProps) {
+export function ArchiveView({ weeks, onImported, onExported }: ArchiveViewProps) {
   const [tab, setTab] = useState<ArchiveTab>("metrics");
 
   const tabBtn = (tabId: ArchiveTab, label: string) => (
@@ -39,12 +39,15 @@ export function ArchiveView({ weeks, currentWeekId, onImported, onExported }: Ar
 
       {tab === "metrics" && (
         <section className="border border-parchment-200 bg-parchment-50 p-4 sm:p-6">
-          <Performance weeks={weeks} currentWeekId={currentWeekId} />
+          <Performance weeks={weeks} />
         </section>
       )}
 
       {tab === "data" && (
         <div className="space-y-6">
+          <section className="border border-parchment-200 bg-parchment-50 p-4 sm:p-6">
+            <YearOverview weeks={weeks} />
+          </section>
           <section className="border border-parchment-200 bg-parchment-50 p-4 sm:p-6">
             <ExportImport weeks={weeks} onImport={onImported} onExported={onExported} />
           </section>

@@ -207,7 +207,6 @@ function App() {
             </div>
             <ArchiveView
               weeks={weeks}
-              currentWeekId={currentWeek.id}
               onImported={refreshWeeks}
               onExported={handleExported}
             />
