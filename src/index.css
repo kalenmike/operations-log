@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --font-typewriter: "Special Elite", "Courier Prime", "Courier New", monospace;
+  --font-mono: "Courier Prime", "Courier New", monospace;
+
+  --color-parchment-50: #faf6f0;
+  --color-parchment-100: #f0e8d8;
+  --color-parchment-200: #e2d4b8;
+  --color-parchment-300: #d0bc94;
+  --color-parchment-400: #bfa36e;
+  --color-parchment-500: #a68a52;
+  --color-parchment-600: #8a6f3e;
+  --color-parchment-700: #6d5633;
+  --color-parchment-800: #5a472d;
+  --color-parchment-900: #4c3c28;
+
+  --color-ink-50: #f5f3f0;
+  --color-ink-100: #e0dbd3;
+  --color-ink-200: #c2b9a9;
+  --color-ink-300: #9e9180;
+  --color-ink-400: #7d6f5e;
+  --color-ink-500: #635748;
+  --color-ink-600: #4d4338;
+  --color-ink-700: #3e362e;
+  --color-ink-800: #302a24;
+  --color-ink-900: #1e1a16;
+
+  --color-olive-400: #8b9a6b;
+  --color-olive-500: #6b7d4e;
+  --color-olive-600: #556840;
+
+  --color-rust-400: #c4734b;
+  --color-rust-500: #a85d38;
+  --color-rust-600: #8c4a2a;
+
+  --color-gold-400: #d4a84b;
+  --color-gold-500: #b8922e;
+  --color-gold-600: #9a7a22;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-typewriter);
+  background-color: var(--color-parchment-50);
+  color: var(--color-ink-800);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+input,
+textarea,
+select {
+  font-family: var(--font-mono);
+}
