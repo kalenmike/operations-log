@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { DailyCheckin, Goal, WeekEntry } from "../types";
 import {
     getWeekDays,
@@ -31,25 +30,14 @@ export function ExecuteView({
 }: ExecuteViewProps) {
     const weekDays = getWeekDays(week.startDate);
 
-    // Initialize once on mount using selectedDate or fallback to first day / today
-    const [activeDate, setActiveDate] = useState<string>(() => {
-        const match = weekDays.find((d) => formatDate(d) === selectedDate);
-        if (match) return formatDate(match);
-
-        // Fallback: try today if it's in the week, otherwise first day
-        const todayStr = formatDate(new Date());
-        const todayMatch = weekDays.find((d) => formatDate(d) === todayStr);
-        return todayMatch ? todayStr : formatDate(weekDays[0]);
-    });
 
     const dayIndex = weekDays.findIndex((d) => formatDate(d) === selectedDate);
     const effectiveIndex = dayIndex >= 0 ? dayIndex : 0;
-    // const activeDate = formatDate(weekDays[effectiveIndex]);
+    const activeDate = formatDate(weekDays[effectiveIndex]);
     const goals: Goal[] = week.goals;
     const quote = prevWeekQuote?.trim() ?? "";
 
     const handleDateSelect = (dateStr: string) => {
-        setActiveDate(dateStr);
         onSelectDate(dateStr);
     };
 
@@ -84,7 +72,7 @@ export function ExecuteView({
             </section>
 
             <section className="grid gap-4 lg:grid-cols-[220px_1fr]">
-                <aside className="order-2 lg:order-1">
+                <aside>
                     <div className="border border-parchment-200 bg-parchment-50 p-3 lg:sticky lg:top-4">
                         <h3 className="text-xs uppercase tracking-[0.2em] text-ink-400 mb-3 font-mono">
                             Execution Days
@@ -136,10 +124,8 @@ export function ExecuteView({
                         </div>
                     </div>
                 </aside>
-
-                <div className="order-1 lg:order-2">
+                <div>
                     <DayLogCard
-                        key={activeDate}
                         date={activeDate}
                         dayIndex={effectiveIndex}
                         goals={goals}

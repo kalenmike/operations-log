@@ -21,7 +21,7 @@ export function EvaluateView({ week, onChange }: EvaluateViewProps) {
         </h3>
         <div className="divide-y divide-parchment-200">
           <div className="py-4 first:pt-0">
-            <DomainRatings ratings={week.ratings} readonly />
+            <DomainRatings ratings={week.ratings} compact />
           </div>
           <div className="py-4">
             <ObjectiveTracker goals={week.goals} />

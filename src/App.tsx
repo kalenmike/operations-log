@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useJournal } from "./hooks/useJournal";
 import type { DailyCheckin, Rating } from "./types";
 import {
@@ -15,6 +15,7 @@ import { ExecuteView } from "./components/ExecuteView";
 import { EvaluateView } from "./components/EvaluateView";
 import { ArchiveView } from "./components/ArchiveView";
 import { TopMenu } from "./components/TopMenu";
+import { UpdateNotice } from "./components/UpdateNotice";
 
 type Page = "ops" | "archive";
 type OpTab = "plan" | "execute" | "evaluate";
@@ -61,8 +62,11 @@ function App() {
     void load();
   }, []);
 
+  const prevOpTab = useRef<OpTab>(opTab);
   useEffect(() => {
-    if (opTab === "execute" && currentWeek && isWeekCurrent(currentWeek.startDate)) {
+    const opened = prevOpTab.current !== "execute" && opTab === "execute";
+    prevOpTab.current = opTab;
+    if (opened && currentWeek && isWeekCurrent(currentWeek.startDate)) {
       setSelectedDate(getTodayStringStable());
     }
   }, [opTab, currentWeek]);
@@ -124,13 +128,14 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[repeating-linear-gradient(0deg,transparent,transparent_27px,#f4eee2_27px,#f4eee2_28px)]">
+      <UpdateNotice />
       <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
         <header className="border-4 border-double border-ink-800 bg-parchment-50 p-4 sm:p-6 mb-6 text-center relative">
-          <div className="absolute top-3 right-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-xs font-mono text-ink-400 tracking-[0.3em] uppercase">
+              After Action Review
+            </div>
             <TopMenu onArchive={() => setPage("archive")} />
-          </div>
-          <div className="text-xs font-mono text-ink-400 tracking-[0.3em] uppercase">
-            After Action Review
           </div>
           <h1 className="text-3xl sm:text-5xl font-bold text-ink-900 tracking-[0.15em] uppercase my-2">
             Operations Log
