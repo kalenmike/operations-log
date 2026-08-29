@@ -77,7 +77,43 @@ export function ExecuteView({
                         <h3 className="text-xs uppercase tracking-[0.2em] text-ink-400 mb-3 font-mono">
                             Execution Days
                         </h3>
-                        <div className="flex lg:flex-col flex-wrap lg:flex-nowrap gap-1">
+                        <div className="lg:hidden grid grid-cols-7 gap-1">
+                            {weekDays.map((day, i) => {
+                                const dateStr = formatDate(day);
+                                const checkin = week.dailyCheckins.find((c) => c.date === dateStr);
+                                const hasData = checkin && (checkin.reflections !== "" || checkin.moodRating > 0);
+                                const isActive = dateStr === activeDate;
+                                const isToday = isTodayDate(dateStr);
+                                return (
+                                    <button
+                                        key={dateStr}
+                                        type="button"
+                                        onClick={() => handleDateSelect(dateStr)}
+                                        aria-label={`${getDayLabel(i)} ${dateStr.slice(5)}`}
+                                        aria-current={isActive ? "true" : undefined}
+                                        className={`flex flex-col items-center justify-center gap-1 aspect-square border cursor-pointer transition-colors font-mono text-xs uppercase ${isActive
+                                            ? "border-ink-800 bg-ink-800 text-parchment-100"
+                                            : "border-parchment-200 bg-parchment-50 text-ink-600 hover:border-ink-400"
+                                            }`}
+                                    >
+                                        <span>{getDayLabel(i).slice(0, 2)}</span>
+                                        <span
+                                            className={`text-[8px] leading-none ${isActive
+                                                ? "text-parchment-300"
+                                                : isToday
+                                                    ? "text-rust-500"
+                                                    : hasData
+                                                        ? "text-gold-500"
+                                                        : "text-transparent"
+                                                }`}
+                                        >
+                                            ●
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <div className="hidden lg:flex lg:flex-col gap-1">
                             {weekDays.map((day, i) => {
                                 const dateStr = formatDate(day);
                                 const checkin = week.dailyCheckins.find((c) => c.date === dateStr);

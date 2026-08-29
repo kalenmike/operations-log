@@ -146,6 +146,10 @@ export function useJournal() {
     void ensureWeek(todayString);
   };
 
+  const goToWeek = (dateStr: string) => {
+    void ensureWeek(dateStr);
+  };
+
   const refreshWeeks = useCallback(async () => {
     const all = await getAllWeeks();
     commitWeeks(() => all);
@@ -167,6 +171,7 @@ export function useJournal() {
     goPrevWeek,
     goNextWeek,
     goThisWeek,
+    goToWeek,
     refreshWeeks,
     updateCurrentWeek,
   };
