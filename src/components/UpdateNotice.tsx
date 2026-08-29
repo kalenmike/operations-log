@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
+import { setSWRegistration } from "../lib/swStatus";
 
 export function UpdateNotice() {
   const {
@@ -7,6 +8,9 @@ export function UpdateNotice() {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
+    onRegisteredSW(_swUrl, registration) {
+      setSWRegistration(registration);
+    },
     onRegisterError(error) {
       console.error("Service worker registration failed", error);
     },
