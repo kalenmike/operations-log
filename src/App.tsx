@@ -229,7 +229,7 @@ function App() {
                 )}
 
                 <footer className="mt-8 text-center text-[10px] font-mono text-ink-400 uppercase tracking-[0.3em]">
-                    <div>Local only · No backend · Your device, your data</div>
+                    <div>Local only · Your device · Your data</div>
                     <div className="mt-2 text-[10px] tracking-[0.2em]">
                         Last exported:{" "}
                         <span className="text-ink-600">
