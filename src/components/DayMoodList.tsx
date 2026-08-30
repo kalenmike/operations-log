@@ -61,15 +61,20 @@ export function DayMoodList({ startDate, weekDays, checkins }: DayMoodListProps)
                                 <span className="flex-1 flex items-center gap-1">
                                     {checkin && checkin.moodRating > 0 ? (
                                         <>
-                                            <span className="text-gold-500">
-                                                {"★".repeat(checkin.moodRating)}
+                                            <span>
+                                                <span className="text-gold-500">
+                                                    {"★".repeat(checkin.moodRating)}
+                                                </span>
+                                                <span className="text-ink-100">
+                                                    {"★".repeat(5 - checkin.moodRating)}
+                                                </span>
                                             </span>
                                             <span className="text-[10px] text-ink-400 uppercase tracking-wider font-mono">
                                                 {MOOD_LABELS[checkin.moodRating]}
                                             </span>
                                         </>
                                     ) : (
-                                        <span className="text-xs font-mono text-ink-300 italic">No entry</span>
+                                        <span className="text-xs font-mono text-ink-300 italic">No Rating</span>
                                     )}
                                 </span>
                                 {checkin?.reflections.trim() && !expanded && (
