@@ -5,6 +5,7 @@ import { GoalManager } from "./GoalManager";
 
 interface PlanViewProps {
   week: WeekEntry;
+  previousRatings?: Ratings;
   onChange: (week: WeekEntry) => void;
 }
 
@@ -65,7 +66,7 @@ function AreaField({
   );
 }
 
-export function PlanView({ week, onChange }: PlanViewProps) {
+export function PlanView({ week, previousRatings, onChange }: PlanViewProps) {
   const updateRatings = (key: keyof Ratings, value: Rating) => {
     onChange({ ...week, ratings: { ...week.ratings, [key]: value } });
   };
@@ -81,7 +82,7 @@ export function PlanView({ week, onChange }: PlanViewProps) {
   return (
     <div className="space-y-6">
       <section className="border border-parchment-200 bg-parchment-50 p-4 sm:p-6">
-        <DomainRatings ratings={week.ratings} onChange={updateRatings} />
+        <DomainRatings ratings={week.ratings} previousRatings={previousRatings} onChange={updateRatings} />
       </section>
 
       <section className="border border-parchment-200 bg-parchment-50 p-4 sm:p-6">

@@ -1,5 +1,6 @@
 import { openDB, type IDBPDatabase } from "idb";
-import type { WeekEntry } from "../types";
+import { v4 as uuid } from "uuid";
+import type { Goal, WeekEntry } from "../types";
 import { APP_VERSION } from "./version";
 
 const DB_NAME = "aar-journal";
@@ -31,9 +32,24 @@ type StoredWeek = WeekEntry & {
   worstArea?: unknown;
 };
 
+function normalizeGoal(goal: Goal): Goal {
+  return {
+    id: goal.id || uuid(),
+    text: String(goal.text ?? ""),
+    done: Array.isArray(goal.done) ? goal.done.map(Boolean) : [false, false, false, false, false, false, false],
+    carried: goal.carried === true,
+    carriedToNext: goal.carriedToNext === true,
+  };
+}
+
 function normalizeWeek(raw: StoredWeek): WeekEntry {
   const { habits: _h, bestArea: _b, worstArea: _w, ...clean } = raw;
-  return clean;
+  return {
+    ...clean,
+    goals: Array.isArray(clean.goals)
+      ? (clean.goals as Goal[]).filter((g) => g && typeof g === "object").map(normalizeGoal)
+      : [],
+  };
 }
 
 export async function getAllWeeks(): Promise<WeekEntry[]> {

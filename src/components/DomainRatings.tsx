@@ -1,4 +1,4 @@
-import { Circle, Compass, Zap, BookOpen, HeartHandshake, Users } from 'lucide-react';
+import { Circle, Compass, Zap, BookOpen, HeartHandshake, Users, ChevronUp, ChevronDown } from 'lucide-react';
 import type { Rating } from "../types";
 import type { ElementType } from 'react';
 
@@ -12,6 +12,7 @@ export interface Ratings {
 
 interface DomainRatingsProps {
     ratings: Ratings;
+    previousRatings?: Ratings;
     onChange?: (key: keyof Ratings, value: Rating) => void;
     readonly?: boolean;
     compact?: boolean;
@@ -26,6 +27,15 @@ const DOMAINS: { key: keyof Ratings; label: string; icon: ElementType<{ classNam
 ];
 
 const RATING_CIRCLES = [1, 2, 3, 4, 5] as const;
+
+function DeltaIndicator({ current, previous }: { current: Rating; previous?: Rating }) {
+    if (!current || !previous || current === previous) return null;
+    return current > previous ? (
+        <ChevronUp className="w-3.5 h-3.5 stroke-[2.5] text-olive-600 shrink-0" />
+    ) : (
+        <ChevronDown className="w-3.5 h-3.5 stroke-[2.5] text-rust-600 shrink-0" />
+    );
+}
 
 function RatingCircles({
     ratings,
@@ -62,7 +72,7 @@ function RatingCircles({
     );
 }
 
-export function DomainRatings({ ratings, onChange, readonly, compact }: DomainRatingsProps) {
+export function DomainRatings({ ratings, previousRatings, onChange, readonly, compact }: DomainRatingsProps) {
     if (compact) {
         return (
             <div className="space-y-3">
@@ -78,6 +88,7 @@ export function DomainRatings({ ratings, onChange, readonly, compact }: DomainRa
                             <span className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-ink-500">
                                 <IconComponent className="w-4 h-4 stroke-[1.5] text-gold-500 shrink-0" />
                                 {label}
+                                <DeltaIndicator current={ratings[key]} previous={previousRatings?.[key]} />
                             </span>
                             <RatingCircles
                                 ratings={ratings}
@@ -105,8 +116,9 @@ export function DomainRatings({ ratings, onChange, readonly, compact }: DomainRa
                     >
                         <IconComponent className="w-7 h-7 shrink-0 stroke-[1] text-gold-500 sm:w-12 sm:h-12" />
                         <div className="flex flex-col gap-1.5 min-w-0 sm:items-center">
-                            <span className="text-xs font-mono uppercase tracking-wider text-ink-500">
+                            <span className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-ink-500">
                                 {label}
+                                <DeltaIndicator current={ratings[key]} previous={previousRatings?.[key]} />
                             </span>
                             <RatingCircles
                                 ratings={ratings}

@@ -61,6 +61,14 @@ export function GoalManager({ goals, onChange }: GoalManagerProps) {
       <div className="space-y-2">
         {goals.map((goal, index) => (
           <div key={goal.id} className="flex items-center gap-2">
+            {goal.carried && (
+              <span
+                title="Carried over from the previous week"
+                className="shrink-0 text-[10px] font-mono uppercase tracking-widest text-olive-600 border border-olive-600/40 px-1.5 py-0.5"
+              >
+                ↻
+              </span>
+            )}
             <input
               type="text"
               value={goal.text}

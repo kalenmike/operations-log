@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuid } from "uuid";
-import type { DailyCheckin, WeekEntry } from "../types";
+import type { DailyCheckin, Goal, WeekEntry } from "../types";
 import { getAllWeeks, getWeekByDate, saveWeek, setStoredVersion } from "../lib/storage";
 import {
   createEmptyWeek,
@@ -11,7 +11,7 @@ import {
   getPrevMonday,
 } from "../lib/dates";
 
-export function useJournal() {
+export function useJournal(seedWeek?: string) {
   const [weeks, setWeeks] = useState<WeekEntry[]>([]);
   const weeksRef = useRef<WeekEntry[]>([]);
   const [currentWeekId, setCurrentWeekId] = useState<string | null>(null);
@@ -44,7 +44,7 @@ export function useJournal() {
   );
 
   const ensureWeek = useCallback(
-    (dateStr: string): Promise<WeekEntry> => {
+    (dateStr: string, activate = true): Promise<WeekEntry> => {
       const monday = formatDate(getMonday(new Date(dateStr + "T12:00:00")));
       const pending = inflight.current.get(monday);
       if (pending) return pending;
@@ -52,7 +52,7 @@ export function useJournal() {
       const run = (async () => {
         const known = weeksRef.current.find((w) => w.startDate === monday);
         if (known) {
-          setCurrentWeekId(known.id);
+          if (activate) setCurrentWeekId(known.id);
           return known;
         }
         const fromDb = await getWeekByDate(monday);
@@ -60,7 +60,7 @@ export function useJournal() {
           commitWeeks((prev) =>
             prev.some((w) => w.id === fromDb.id) ? prev : [fromDb, ...prev]
           );
-          setCurrentWeekId(fromDb.id);
+          if (activate) setCurrentWeekId(fromDb.id);
           return fromDb;
         }
         const fresh: WeekEntry = {
@@ -71,7 +71,7 @@ export function useJournal() {
         };
         commitWeeks((prev) => [fresh, ...prev]);
         void saveWeek(fresh);
-        setCurrentWeekId(fresh.id);
+        if (activate) setCurrentWeekId(fresh.id);
         return fresh;
       })();
 
@@ -91,11 +91,11 @@ export function useJournal() {
       const all = await getAllWeeks();
       commitWeeks(() => all);
       await setStoredVersion();
-      await ensureWeek(todayString);
+      await ensureWeek(seedWeek ?? todayString);
       setLoading(false);
     };
     void init();
-  }, [commitWeeks, ensureWeek, todayString]);
+  }, [commitWeeks, ensureWeek, todayString, seedWeek]);
 
   const currentWeek = weeks.find((w) => w.id === currentWeekId) ?? null;
 
@@ -150,6 +150,28 @@ export function useJournal() {
     void ensureWeek(dateStr);
   };
 
+  const carryGoal = async (goal: Goal): Promise<WeekEntry | null> => {
+    if (!currentWeek || !goal.text.trim()) return null;
+    const nextStart = getNextMonday(currentWeek.startDate);
+    const next = await ensureWeek(nextStart, false);
+    const text = goal.text.trim();
+    if (!next.goals.some((g) => g.text.trim().toLowerCase() === text.toLowerCase())) {
+      const carried: Goal = {
+        id: uuid(),
+        text,
+        done: [false, false, false, false, false, false, false],
+        carried: true,
+      };
+      persistWeek({ ...next, goals: [...next.goals, carried] });
+    }
+    return persistWeek({
+      ...currentWeek,
+      goals: currentWeek.goals.map((g) =>
+        g.id === goal.id ? { ...g, carriedToNext: true } : g
+      ),
+    });
+  };
+
   const refreshWeeks = useCallback(async () => {
     const all = await getAllWeeks();
     commitWeeks(() => all);
@@ -172,6 +194,7 @@ export function useJournal() {
     goNextWeek,
     goThisWeek,
     goToWeek,
+    carryGoal,
     refreshWeeks,
     updateCurrentWeek,
   };

@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { addDays, parseISO } from "date-fns";
 import type { WeekEntry } from "../types";
-import { formatDate, getMonday, getWeekStartsInYear } from "../lib/dates";
+import { formatDate, formatDateDisplay, findWeekForCell, getMonday, getWeekStartsInYear } from "../lib/dates";
 import { weekStatus, type WeekStatus } from "../lib/weekStatus";
 
 interface YearOverviewProps {
@@ -9,13 +10,12 @@ interface YearOverviewProps {
 
 export function YearOverview({ weeks }: YearOverviewProps) {
   const [year, setYear] = useState(() => new Date().getFullYear());
-  const byStart = new Map(weeks.map((w) => [w.startDate, w]));
   const weekStarts = getWeekStartsInYear(year);
   const currentStart = formatDate(getMonday(new Date()));
 
   const counts = weekStarts.reduce(
     (acc, start) => {
-      acc[weekStatus(byStart.get(start))] += 1;
+      acc[weekStatus(findWeekForCell(weeks, start))] += 1;
       return acc;
     },
     { missing: 0, incomplete: 0, complete: 0 },
@@ -58,12 +58,13 @@ export function YearOverview({ weeks }: YearOverviewProps) {
 
       <div className="grid grid-cols-[repeat(13,minmax(0,1fr))] gap-1">
         {weekStarts.map((start, i) => {
-          const status = weekStatus(byStart.get(start));
+          const status = weekStatus(findWeekForCell(weeks, start));
           const isCurrent = start === currentStart;
+          const to = formatDate(addDays(parseISO(start), 6));
           return (
             <div
               key={start}
-              title={`W${i + 1} · ${status}`}
+              title={`W${i + 1} · ${formatDateDisplay(start)} — ${formatDateDisplay(to)} · ${status}`}
               className={`aspect-square flex flex-col items-center justify-center border font-mono leading-none ${cellCls[status]} ${
                 isCurrent ? "ring-1 ring-ink-700" : ""
               }`}
@@ -82,7 +83,7 @@ export function YearOverview({ weeks }: YearOverviewProps) {
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 border border-gold-500 bg-gold-500/15 inline-block text-gold-700 text-center">◔</span>{" "}
-          In progress
+          Incomplete
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 border border-olive-600 bg-olive-600 inline-block text-parchment-50 text-center">✓</span>{" "}

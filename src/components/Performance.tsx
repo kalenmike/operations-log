@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { WeekEntry } from "../types";
-import { formatDate, getMonday, getWeekStartsInYear } from "../lib/dates";
+import { findWeekForCell, formatDate, getMonday, getWeekStartsInYear } from "../lib/dates";
 import { weekStatus } from "../lib/weekStatus";
 
 interface PerformanceProps {
@@ -13,6 +13,15 @@ const PAD_L = 26;
 const PAD_R = 10;
 const PAD_T = 10;
 const PAD_B = 18;
+
+const DOMAIN_KEYS = ["spiritual", "physical", "intellectual", "emotional", "social"] as const;
+const DOMAIN_LABELS: Record<(typeof DOMAIN_KEYS)[number], string> = {
+  spiritual: "Spiritual",
+  physical: "Physical",
+  intellectual: "Intellectual",
+  emotional: "Emotional",
+  social: "Social",
+};
 
 function average(nums: number[]): number {
   if (nums.length === 0) return 0;
@@ -54,8 +63,9 @@ export function Performance({ weeks }: PerformanceProps) {
 
   const { cells, points, stats } = useMemo(() => {
     const cells = getWeekStartsInYear(year);
-    const byStart = new Map(weeks.map((w) => [w.startDate, w]));
-    const yearWeeks = cells.map((s) => byStart.get(s)).filter((w): w is WeekEntry => Boolean(w));
+    const yearWeeks = cells
+      .map((s) => findWeekForCell(weeks, s))
+      .filter((w): w is WeekEntry => Boolean(w));
 
     const completed = yearWeeks.filter((w) => weekStatus(w) === "complete").length;
     const logPct = cells.length ? Math.round((completed / cells.length) * 100) : 0;
@@ -74,7 +84,7 @@ export function Performance({ weeks }: PerformanceProps) {
     const streakCursor = currentIdx >= 0 ? currentIdx : cells.length - 1;
     let streak = 0;
     for (let i = streakCursor; i >= 0; i--) {
-      const w = byStart.get(cells[i]);
+      const w = findWeekForCell(weeks, cells[i]);
       if (w && weekStatus(w) !== "missing") streak++;
       else break;
     }
@@ -86,7 +96,7 @@ export function Performance({ weeks }: PerformanceProps) {
 
     const points: Point[] = [];
     cells.forEach((s, i) => {
-      const w = byStart.get(s);
+      const w = findWeekForCell(weeks, s);
       if (!w) return;
       const mood = average(w.dailyCheckins.map((c) => Number(c.moodRating) || 0));
       if (mood > 0) points.push({ weekNum: i + 1, mood });
@@ -107,6 +117,63 @@ export function Performance({ weeks }: PerformanceProps) {
   }, [weeks, year, currentStart]);
 
   const trend = useMemo(() => linearFit(points), [points]);
+
+  const themes = useMemo(() => {
+    const tally = new Map<string, { kind: "givers" | "drainers"; count: number }>();
+    const add = (items: [string, string], kind: "givers" | "drainers") => {
+      for (const raw of items) {
+        const t = raw.trim().toLowerCase();
+        if (!t) continue;
+        const found = tally.get(t);
+        if (found) found.count += 1;
+        else tally.set(t, { kind, count: 1 });
+      }
+    };
+    for (const w of weeks) {
+      add(w.energyGivers, "givers");
+      add(w.energyDrainers, "drainers");
+    }
+    return [...tally.entries()]
+      .filter(([, v]) => v.count >= 2)
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 5)
+      .map(([text, v]) => ({ text, ...v }));
+  }, [weeks]);
+
+  const focusHint = useMemo(() => {
+    const rated = weeks
+      .filter((w) => (Object.values(w.ratings) as number[]).some((v) => v > 0))
+      .sort((a, b) => b.startDate.localeCompare(a.startDate))
+      .slice(0, 5);
+    if (rated.length < 3) return null;
+    const counts: Record<(typeof DOMAIN_KEYS)[number], number> = {
+      spiritual: 0,
+      physical: 0,
+      intellectual: 0,
+      emotional: 0,
+      social: 0,
+    };
+    for (const w of rated) {
+      const keys = DOMAIN_KEYS.filter((k) => Number(w.ratings[k]) > 0);
+      if (keys.length === 0) continue;
+      const min = Math.min(...keys.map((k) => Number(w.ratings[k])));
+      for (const k of keys) {
+        if (Number(w.ratings[k]) === min) counts[k] += 1;
+      }
+    }
+    const top = DOMAIN_KEYS.reduce((acc, k) => (counts[k] > counts[acc] ? k : acc), DOMAIN_KEYS[0]);
+    if (counts[top] < 3) return null;
+    return { domain: top, n: counts[top], of: rated.length };
+  }, [weeks]);
+
+  const RATING_CELL_CLASS: Record<number, string> = {
+    0: "bg-parchment-100",
+    1: "bg-rust-500",
+    2: "bg-gold-500",
+    3: "bg-parchment-300",
+    4: "bg-olive-500/60",
+    5: "bg-olive-500",
+  };
 
   const xFor = (weekNum: number) =>
     cells.length > 1
@@ -281,6 +348,88 @@ export function Performance({ weeks }: PerformanceProps) {
             </span>
             <span className="text-rust-600">{trendLine.slope >= 0 ? "▲" : "▼"} {Math.abs(trendLine.slope * 10).toFixed(1)}/10 wks</span>
           </div>
+        )}
+      </div>
+
+      {focusHint && (
+        <div className="p-3 border border-gold-500 bg-gold-500/10">
+          <div className="text-[10px] uppercase tracking-wider text-gold-700 font-mono mb-1">
+            Focus Hint
+          </div>
+          <p className="text-sm font-mono text-ink-800">
+            {DOMAIN_LABELS[focusHint.domain]} was your lowest-rated domain in {focusHint.n} of the
+            last {focusHint.of} logged weeks. Consider aiming this week's goal there.
+          </p>
+        </div>
+      )}
+
+      <div className="p-3 border border-parchment-200 bg-parchment-100/50">
+        <div className="text-[10px] uppercase tracking-wider text-ink-400 mb-3">Domain Heatmap</div>
+        <div className="space-y-1.5">
+          {DOMAIN_KEYS.map((d) => (
+            <div key={d} className="flex items-center gap-2">
+              <div className="w-16 shrink-0 text-[9px] font-mono uppercase tracking-wider text-ink-500 text-right truncate">
+                {DOMAIN_LABELS[d]}
+              </div>
+              <div
+                className="flex-1 grid gap-px bg-parchment-200 p-px"
+                style={{ gridTemplateColumns: `repeat(${cells.length}, 1fr)` }}
+              >
+                {cells.map((start, i) => {
+                  const w = findWeekForCell(weeks, start);
+                  const r = w ? Number(w.ratings[d]) : 0;
+                  return (
+                    <div
+                      key={i}
+                      title={w ? `${DOMAIN_LABELS[d]} · WK ${i + 1} · ${r} / 5` : `${DOMAIN_LABELS[d]} · WK ${i + 1} · no data`}
+                      className={`aspect-square ${RATING_CELL_CLASS[r] ?? RATING_CELL_CLASS[0]}`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 flex items-center gap-3 text-[9px] font-mono uppercase tracking-wider text-ink-400 overflow-x-auto">
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block w-2.5 h-2.5 bg-parchment-100 border border-parchment-200" /> none
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block w-2.5 h-2.5 bg-rust-500" /> 1
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block w-2.5 h-2.5 bg-gold-500" /> 2
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block w-2.5 h-2.5 bg-parchment-300" /> 3
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block w-2.5 h-2.5 bg-olive-500/60" /> 4
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block w-2.5 h-2.5 bg-olive-500" /> 5
+          </span>
+          <span className="ml-auto">weeks 1–{cells.length}</span>
+        </div>
+      </div>
+
+      <div className="p-3 border border-parchment-200 bg-parchment-100/50">
+        <div className="text-[10px] uppercase tracking-wider text-ink-400 mb-2">Repeated Energy Themes</div>
+        {themes.length === 0 ? (
+          <p className="text-xs font-mono text-ink-400 italic">
+            No repeat themes yet. Log energy givers &amp; drainers each week to spot patterns.
+          </p>
+        ) : (
+          <ul className="space-y-1">
+            {themes.map((t) => (
+              <li key={t.text} className="flex items-center justify-between gap-2 text-xs font-mono">
+                <span className={`truncate ${t.kind === "drainers" ? "text-rust-600" : "text-olive-700"}`}>
+                  {t.kind === "drainers" ? "▼" : "▲"} {t.text}
+                </span>
+                <span className="shrink-0 text-ink-400">{t.count}×</span>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </div>

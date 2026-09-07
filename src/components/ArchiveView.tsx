@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { WeekEntry } from "../types";
+import type { ArchiveTab, WeekEntry } from "../types";
 import { Performance } from "./Performance";
 import { ExportImport } from "./ExportImport";
 import { SettingsPanel } from "./SettingsPanel";
@@ -7,14 +7,13 @@ import { YearOverview } from "./YearOverview";
 
 interface ArchiveViewProps {
   weeks: WeekEntry[];
+  initialTab: ArchiveTab;
   onImported: () => void;
   onExported: (dateIso: string) => void;
 }
 
-type ArchiveTab = "metrics" | "data";
-
-export function ArchiveView({ weeks, onImported, onExported }: ArchiveViewProps) {
-  const [tab, setTab] = useState<ArchiveTab>("metrics");
+export function ArchiveView({ weeks, initialTab, onImported, onExported }: ArchiveViewProps) {
+  const [tab, setTab] = useState<ArchiveTab>(initialTab);
 
   const tabBtn = (tabId: ArchiveTab, label: string) => (
     <button
@@ -34,27 +33,31 @@ export function ArchiveView({ weeks, onImported, onExported }: ArchiveViewProps)
     <div className="space-y-6">
       <nav className="flex justify-center gap-4 sm:gap-8 border-b border-parchment-300">
         {tabBtn("metrics", "Metrics")}
+        {tabBtn("settings", "Settings")}
         {tabBtn("data", "Data")}
       </nav>
 
       {tab === "metrics" && (
-        <section className="border border-parchment-200 bg-parchment-50 p-4 sm:p-6">
-          <Performance weeks={weeks} />
-        </section>
-      )}
-
-      {tab === "data" && (
-        <div className="space-y-6">
+        <>
           <section className="border border-parchment-200 bg-parchment-50 p-4 sm:p-6">
             <YearOverview weeks={weeks} />
           </section>
           <section className="border border-parchment-200 bg-parchment-50 p-4 sm:p-6">
-            <ExportImport weeks={weeks} onImport={onImported} onExported={onExported} />
+            <Performance weeks={weeks} />
           </section>
-          <section className="border border-parchment-200 bg-parchment-50 p-4 sm:p-6">
-            <SettingsPanel />
-          </section>
-        </div>
+        </>
+      )}
+
+      {tab === "settings" && (
+        <section className="border border-parchment-200 bg-parchment-50 p-4 sm:p-6">
+          <SettingsPanel />
+        </section>
+      )}
+
+      {tab === "data" && (
+        <section className="border border-parchment-200 bg-parchment-50 p-4 sm:p-6">
+          <ExportImport weeks={weeks} onImport={onImported} onExported={onExported} />
+        </section>
       )}
     </div>
   );

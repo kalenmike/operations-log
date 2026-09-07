@@ -3,6 +3,7 @@ import { getDayLabel } from "../lib/dates";
 
 interface ObjectiveTrackerProps {
     goals: Goal[];
+    onCarryGoal?: (goal: Goal) => void;
 }
 
 const DAYS = Array.from({ length: 7 }, (_, i) => getDayLabel(i));
@@ -22,8 +23,35 @@ function Cell({ checked, dayLabel, compact }: { checked: boolean; dayLabel: stri
     );
 }
 
-export function ObjectiveTracker({ goals }: ObjectiveTrackerProps) {
+export function ObjectiveTracker({ goals, onCarryGoal }: ObjectiveTrackerProps) {
     const daysHit = goals.reduce((acc, g) => acc + g.done.filter(Boolean).length, 0);
+
+    const carryControl = (goal: Goal) => {
+        if (!onCarryGoal) return null;
+        if (goal.carriedToNext) {
+            return (
+                <span
+                    className="shrink-0 text-[10px] font-mono uppercase tracking-widest text-olive-600 border border-olive-600/40 px-1.5 py-0.5"
+                    title="Pushed to next week"
+                >
+                    ↻ carried
+                </span>
+            );
+        }
+        const incomplete = goal.done.length > 0 && !goal.done.every(Boolean);
+        return (
+            <button
+                type="button"
+                onClick={() => onCarryGoal(goal)}
+                aria-label={`Carry "${goal.text}" to next week`}
+                className="shrink-0 text-[10px] font-mono uppercase tracking-widest text-ink-500 border border-parchment-300 px-1.5 py-0.5 hover:border-ink-500 hover:text-ink-700 cursor-pointer disabled:opacity-40 disabled:cursor-default"
+                disabled={!incomplete}
+                title={incomplete ? "Carry this objective to next week" : "Completed — nothing to carry"}
+            >
+                ↻ carry
+            </button>
+        );
+    };
 
     return (
         <div className="space-y-3">
@@ -67,6 +95,9 @@ export function ObjectiveTracker({ goals }: ObjectiveTrackerProps) {
                                                 <Cell checked={goal.done[dayIndex] ?? false} dayLabel={d} />
                                             </td>
                                         ))}
+<td className="py-2 pl-2 text-right whitespace-nowrap">
+    {carryControl(goal)}
+</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -78,8 +109,11 @@ export function ObjectiveTracker({ goals }: ObjectiveTrackerProps) {
                             <div key={goal.id} className="border border-parchment-200">
                                 <div className="px-3 py-1.5 flex items-center justify-between gap-2 border-b border-parchment-200 bg-parchment-100/40">
                                     <span className="text-xs font-mono text-ink-700 truncate">{goal.text}</span>
-                                    <span className="text-[10px] font-mono text-ink-400 shrink-0">
-                                        {goal.done.filter(Boolean).length}/7
+                                    <span className="flex items-center gap-2 shrink-0">
+                                        <span className="text-[10px] font-mono text-ink-400">
+                                            {goal.done.filter(Boolean).length}/7
+                                        </span>
+                                        {carryControl(goal)}
                                     </span>
                                 </div>
                                 <div className="grid grid-cols-7 gap-px bg-parchment-200 p-px">

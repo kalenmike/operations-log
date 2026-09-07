@@ -1,5 +1,7 @@
 export type Rating = 1 | 2 | 3 | 4 | 5;
 
+export type ArchiveTab = "metrics" | "settings" | "data";
+
 export interface Ratings {
   spiritual: Rating;
   physical: Rating;
@@ -22,6 +24,8 @@ export interface Goal {
   id: string;
   text: string;
   done: boolean[]; // 7 days, aligned with week days
+  carried?: boolean; // rolled over from a previous week
+  carriedToNext?: boolean; // pushed to the next week from this week
 }
 
 export interface DailyCheckin {
@@ -45,6 +49,8 @@ export interface WeekEntry {
   energyGivers: [string, string];
   energyDrainers: [string, string];
   nextWeekQuote: string;
+  carriedNote?: string; // "one thing to carry forward", set when closing the week
+  reviewedAt?: string; // ISO date when the week was closed via "Close Week"
   createdAt: string;
   updatedAt: string;
 }

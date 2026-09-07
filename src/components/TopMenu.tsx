@@ -1,10 +1,17 @@
 import { useEffect, useRef, useState } from "react";
+import type { ArchiveTab } from "../types";
 
 interface TopMenuProps {
-  onArchive: () => void;
+  onNavigate: (tab: ArchiveTab) => void;
 }
 
-export function TopMenu({ onArchive }: TopMenuProps) {
+const items: { tab: ArchiveTab; label: string }[] = [
+  { tab: "metrics", label: "Metrics" },
+  { tab: "settings", label: "Settings" },
+  { tab: "data", label: "Data" },
+];
+
+export function TopMenu({ onNavigate }: TopMenuProps) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -33,19 +40,19 @@ export function TopMenu({ onArchive }: TopMenuProps) {
       </button>
       {open && (
         <div className="absolute right-0 top-full mt-1 min-w-[180px] border border-ink-800 bg-parchment-50 shadow-lg z-50">
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              onArchive();
-            }}
-            className="w-full text-left px-4 py-3 text-sm font-mono uppercase tracking-widest text-ink-700 hover:bg-parchment-100 cursor-pointer border-b border-parchment-200"
-          >
-            Archive
-          </button>
-          <div className="px-4 py-2 text-[10px] font-mono text-ink-400 uppercase tracking-wider">
-            Logs · Metrics · Backups
-          </div>
+          {items.map((item) => (
+            <button
+              key={item.tab}
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onNavigate(item.tab);
+              }}
+              className="w-full text-left px-4 py-3 text-sm font-mono uppercase tracking-widest text-ink-700 hover:bg-parchment-100 cursor-pointer border-b border-parchment-200"
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       )}
     </div>

@@ -3,14 +3,15 @@ import {
   endOfWeek,
   addWeeks,
   subWeeks,
+  addDays,
   format,
   parseISO,
   eachDayOfInterval,
   isToday,
-  getDayOfYear,
+  getWeek,
 } from "date-fns";
 import { getSettings } from "./settings";
-import type { DailyCheckin, Goal } from "../types";
+import type { DailyCheckin, Goal, WeekEntry } from "../types";
 import { emptyRatings } from "../types";
 
 function weekStart(): number {
@@ -61,6 +62,17 @@ export function getTodayString(): string {
   return formatDate(new Date());
 }
 
+export function getCurrentWeekStart(): string {
+  return formatDate(startOfWeek(new Date(), { weekStartsOn: weekStartDay() }));
+}
+
+export function findWeekForCell(weeks: WeekEntry[], start: string): WeekEntry | undefined {
+  const exact = weeks.find((w) => w.startDate === start);
+  if (exact) return exact;
+  const end = formatDate(addDays(parseISO(start), 6));
+  return weeks.find((w) => w.startDate >= start && w.startDate <= end);
+}
+
 export function isTodayDate(dateStr: string): boolean {
   return isToday(parseISO(dateStr));
 }
@@ -80,7 +92,7 @@ export function getDayLabel(dayIndex: number): string {
 
 export function getWeekNumber(startDate: string): number {
   const start = parseISO(startDate);
-  return Math.ceil(getDayOfYear(start) / 7);
+  return getWeek(start, { weekStartsOn: weekStartDay(), firstWeekContainsDate: 1 });
 }
 
 export function getWeekStartsInYear(year: number): string[] {
