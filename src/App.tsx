@@ -22,6 +22,7 @@ import { TopMenu } from "./components/TopMenu";
 import { UpdateNotice } from "./components/UpdateNotice";
 import { WeekPickerModal } from "./components/WeekPickerModal";
 import { LastWeekRecap } from "./components/LastWeekRecap";
+import { WeekReport } from "./components/WeekReport";
 
 function getTodayStringStable() {
     return getTodayString();
@@ -154,8 +155,9 @@ function App() {
     );
 
     return (
-        <div className="min-h-screen bg-[repeating-linear-gradient(0deg,transparent,transparent_27px,#f4eee2_27px,#f4eee2_28px)]">
-            <UpdateNotice />
+        <>
+            <div className="min-h-screen bg-[repeating-linear-gradient(0deg,transparent,transparent_27px,#f4eee2_27px,#f4eee2_28px)] print:hidden">
+                <UpdateNotice />
             <header className="fixed top-0 left-0 right-0 z-50 bg-parchment-50 border-b-4 border-double border-ink-800">
                 <div className="max-w-4xl mx-auto px-4 py-2 sm:py-3">
                     <div className="grid grid-cols-3 items-center gap-2">
@@ -293,7 +295,12 @@ function App() {
                 onSelect={goToWeek}
                 onClose={() => setPickerOpen(false)}
             />
-        </div>
+            </div>
+
+            <div className="hidden print:block">
+                {currentWeek && <WeekReport week={currentWeek} />}
+            </div>
+        </>
     );
 
     function selectedDateDay(dateStr: string): number {

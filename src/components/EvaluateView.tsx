@@ -1,7 +1,6 @@
 import { useState } from "react";
 import type { Goal, Ratings, WeekEntry } from "../types";
 import { getWeekDays } from "../lib/dates";
-import { downloadWeekPdf } from "../lib/report";
 import { DomainRatings } from "./DomainRatings";
 import { ObjectiveTracker } from "./ObjectiveTracker";
 import { DayMoodList } from "./DayMoodList";
@@ -112,7 +111,7 @@ export function EvaluateView({ week, previousRatings, onChange, onCarryGoal, onG
             </p>
             <button
               type="button"
-              onClick={() => downloadWeekPdf(week)}
+              onClick={() => window.print()}
               className="px-4 py-2 border border-parchment-400 text-ink-700 text-xs uppercase tracking-widest font-mono cursor-pointer hover:border-ink-500"
             >
               Download Report

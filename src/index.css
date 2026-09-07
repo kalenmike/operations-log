@@ -47,6 +47,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+@page {
+  size: A4;
+  margin: 14mm;
+}
+
+@media print {
+  body {
+    background-color: #ffffff;
+  }
+}
+
 #root {
   min-height: 100svh;
 }
