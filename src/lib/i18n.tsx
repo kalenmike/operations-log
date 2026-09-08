@@ -81,6 +81,12 @@ const dict: Dictionary = {
   },
   "settings.appUpdate": { en: "App Update", es: "Actualización de la App" },
   "settings.updateNow": { en: "Update Now", es: "Actualizar Ahora" },
+  "settings.versionCurrent": { en: "Current Version", es: "Versión Actual" },
+  "settings.versionAvailable": { en: "Available Version", es: "Versión Disponible" },
+  "settings.update.available": {
+    en: "A new version is available below. Update Now to install it.",
+    es: "Hay una nueva versión disponible abajo. Pulsa Actualizar Ahora para instalarla.",
+  },
   "settings.update.idle": {
     en: "Checks for and installs the latest version of this app.",
     es: "Comprueba e instala la última versión de esta aplicación.",

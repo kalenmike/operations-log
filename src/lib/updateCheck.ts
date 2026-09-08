@@ -1,9 +1,11 @@
-export const INSTALLED_VERSION_KEY = "aar-installed-version";
-export const DISMISSED_VERSION_KEY = "aar-dismissed-version";
-const JUST_UPDATED_KEY = "aar-just-updated";
+export const APP_VERSION: string = __APP_VERSION__;
+export const APP_BUILD_TIME: string = __APP_BUILD_TIME__;
 
-interface VersionInfo {
+export const DISMISSED_VERSION_KEY = "aar-dismissed-version";
+
+export interface VersionInfo {
   version: string;
+  buildTime?: string;
 }
 
 function readSession(key: string): string | null {
@@ -14,39 +16,7 @@ function readSession(key: string): string | null {
   }
 }
 
-function writeSession(key: string, value: string): void {
-  try {
-    sessionStorage.setItem(key, value);
-  } catch {
-    // ignore
-  }
-}
-
-function readLocal(key: string): string | null {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
-function writeLocal(key: string, value: string): void {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    // ignore
-  }
-}
-
-function removeSession(key: string): void {
-  try {
-    sessionStorage.removeItem(key);
-  } catch {
-    // ignore
-  }
-}
-
-export async function fetchRemoteVersion(): Promise<string | null> {
+export async function fetchRemoteVersion(): Promise<VersionInfo | null> {
   try {
     const res = await fetch(`${import.meta.env.BASE_URL}version.json`, {
       cache: "no-store",
@@ -55,31 +25,24 @@ export async function fetchRemoteVersion(): Promise<string | null> {
     const type = res.headers.get("content-type") ?? "";
     if (!type.includes("application/json")) return null;
     const info = (await res.json()) as VersionInfo;
-    return info.version ?? null;
+    if (!info.version) return null;
+    return info;
   } catch {
     return null;
   }
 }
 
+export function hasUpdate(remote: VersionInfo | null): boolean {
+  return !!remote && remote.version !== APP_VERSION;
+}
+
 export async function checkForUpdates(options?: {
   ignoreDismissed?: boolean;
-}): Promise<string | null> {
+}): Promise<VersionInfo | null> {
   const remote = await fetchRemoteVersion();
   if (!remote) return null;
-
-  if (readSession(JUST_UPDATED_KEY) === "1") {
-    removeSession(JUST_UPDATED_KEY);
-    writeLocal(INSTALLED_VERSION_KEY, remote);
-    return null;
-  }
-
-  const installed = readLocal(INSTALLED_VERSION_KEY);
-  if (!installed) {
-    writeLocal(INSTALLED_VERSION_KEY, remote);
-    return null;
-  }
-  if (installed === remote) return null;
-  if (!options?.ignoreDismissed && readSession(DISMISSED_VERSION_KEY) === remote) {
+  if (remote.version === APP_VERSION) return null;
+  if (!options?.ignoreDismissed && readSession(DISMISSED_VERSION_KEY) === remote.version) {
     return null;
   }
   return remote;
@@ -101,6 +64,5 @@ export async function forceUpdateNow(): Promise<void> {
   } catch {
     // ignore
   }
-  writeSession(JUST_UPDATED_KEY, "1");
   window.location.reload();
 }

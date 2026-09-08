@@ -1,14 +1,42 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getSettings, saveSettings } from "../lib/settings";
-import { checkForUpdates, forceUpdateNow } from "../lib/updateCheck";
+import { formatDateDisplay } from "../lib/dates";
+import {
+  APP_VERSION,
+  APP_BUILD_TIME,
+  checkForUpdates,
+  forceUpdateNow,
+  type VersionInfo,
+} from "../lib/updateCheck";
 import { useLang } from "../lib/i18n";
 
-type UpdateStatus = "idle" | "working" | "updated" | "fresh" | "none";
+type UpdateStatus = "checking" | "available" | "fresh" | "none";
+
+function formatBuild(iso: string): string {
+  if (!iso) return "—";
+  return `${formatDateDisplay(iso.slice(0, 10))} · ${iso.slice(11, 16)} UTC`;
+}
 
 export function SettingsPanel() {
   const { lang, setLang, t } = useLang();
   const [settings, setSettings] = useState(() => getSettings());
-  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>("idle");
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>("checking");
+  const [remoteVersion, setRemoteVersion] = useState<VersionInfo | null>(null);
+  const [updating, setUpdating] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void checkForUpdates({ ignoreDismissed: true }).then((remote) => {
+      if (cancelled) return;
+      setRemoteVersion(remote);
+      setUpdateStatus(
+        remote ? "available" : navigator.onLine ? "fresh" : "none"
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleDayChange = (value: number) => {
     const labels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -21,19 +49,10 @@ export function SettingsPanel() {
     setLang(value);
   };
 
-  const handleUpdateNow = async () => {
-    setUpdateStatus("working");
-    if (!navigator.onLine) {
-      setUpdateStatus("none");
-      return;
-    }
-    const remote = await checkForUpdates({ ignoreDismissed: true });
-    if (remote) {
-      setUpdateStatus("updated");
-      window.setTimeout(() => void forceUpdateNow(), 400);
-    } else {
-      setUpdateStatus("fresh");
-    }
+  const handleUpdateNow = () => {
+    if (!remoteVersion) return;
+    setUpdating(true);
+    void forceUpdateNow();
   };
 
   return (
@@ -82,23 +101,46 @@ export function SettingsPanel() {
         <label className="text-xs uppercase tracking-widest text-ink-500 font-mono">
           {t("settings.appUpdate")}
         </label>
+        <div className="flex flex-col gap-1.5 text-xs font-mono">
+          <div className="flex items-baseline gap-2">
+            <span className="uppercase tracking-widest text-ink-400">
+              {t("settings.versionCurrent")}
+            </span>
+            <span className="text-ink-800 font-bold">
+              {APP_VERSION} · {formatBuild(APP_BUILD_TIME)}
+            </span>
+          </div>
+          {updateStatus === "available" && remoteVersion && (
+            <div className="flex items-baseline gap-2">
+              <span className="uppercase tracking-widest text-gold-700">
+                {t("settings.versionAvailable")}
+              </span>
+              <span className="text-gold-700 font-bold">
+                {remoteVersion.version}
+                {remoteVersion.buildTime && ` · ${formatBuild(remoteVersion.buildTime)}`}
+              </span>
+            </div>
+          )}
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => void handleUpdateNow()}
-            disabled={updateStatus === "working"}
-            className="px-3 py-2 border border-ink-600 bg-ink-800 text-parchment-100 text-xs uppercase tracking-widest font-mono cursor-pointer hover:bg-ink-700 disabled:opacity-50 disabled:cursor-wait"
+            onClick={handleUpdateNow}
+            disabled={updateStatus !== "available" || updating}
+            className="px-3 py-2 border border-ink-600 bg-ink-800 text-parchment-100 text-xs uppercase tracking-widest font-mono cursor-pointer hover:bg-ink-700 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {t("settings.updateNow")}
           </button>
           <span className="text-xs font-mono text-ink-500">
-            {updateStatus === "idle" && t("settings.update.idle")}
-            {updateStatus === "working" && t("settings.update.working")}
-            {updateStatus === "updated" && t("settings.update.updated")}
+            {updateStatus === "checking" && t("settings.update.working")}
+            {updateStatus === "available" && t("settings.update.available")}
             {updateStatus === "fresh" && t("settings.update.fresh")}
             {updateStatus === "none" && t("settings.update.none")}
           </span>
         </div>
+        <p className="text-xs font-mono text-ink-400">
+          {t("settings.update.idle")}
+        </p>
       </div>
     </div>
   );

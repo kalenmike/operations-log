@@ -7,9 +7,8 @@ import { resolve } from "node:path";
 import { defineConfig, type Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
-function versionFile(): Plugin {
-    const payload = (version: string) =>
-        JSON.stringify({ version, buildTime: new Date().toISOString() }, null, 2);
+function versionFile(version: string, buildTime: string): Plugin {
+    const payload = JSON.stringify({ version, buildTime }, null, 2);
     return {
         name: "aar-version-file",
         configureServer(server) {
@@ -17,31 +16,42 @@ function versionFile(): Plugin {
                 "/version.json",
                 (_req: IncomingMessage, res: ServerResponse) => {
                     res.setHeader("Content-Type", "application/json");
-                    res.end(payload("dev"));
+                    res.end(payload);
                 },
             );
         },
         writeBundle() {
-            let version = "";
-            try {
-                version = execSync("git rev-parse --short=8 HEAD", { encoding: "utf8" }).trim();
-            } catch {
-                version = `t${Math.floor(Date.now() / 1000)}`;
-            }
             const outDir = resolve(process.cwd(), "dist");
             mkdirSync(outDir, { recursive: true });
-            writeFileSync(resolve(outDir, "version.json"), payload(version));
+            writeFileSync(resolve(outDir, "version.json"), payload);
         },
     };
 }
 
-export default defineConfig({
-    base: "/",
-    server: { allowedHosts: ["retro.km"] },
-    plugins: [
+function computeVersion(): string {
+    try {
+        return execSync("git rev-parse --short=8 HEAD", { encoding: "utf8" }).trim();
+    } catch {
+        return `t${Math.floor(Date.now() / 1000)}`;
+    }
+}
+
+export default defineConfig(({ mode }) => {
+    const isDev = mode === "development";
+    const buildVersion = isDev ? "dev" : computeVersion();
+    const buildTime = new Date().toISOString();
+
+    return {
+        base: "/",
+        server: { allowedHosts: ["retro.km"] },
+        define: {
+            __APP_VERSION__: JSON.stringify(buildVersion),
+            __APP_BUILD_TIME__: JSON.stringify(buildTime),
+        },
+        plugins: [
         react(),
         tailwindcss(),
-        versionFile(),
+        versionFile(buildVersion, buildTime),
         VitePWA({
             registerType: "prompt",
             injectRegister: false,
@@ -87,4 +97,5 @@ export default defineConfig({
             },
         }),
     ],
+    };
 });

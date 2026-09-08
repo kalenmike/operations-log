@@ -4,12 +4,13 @@ import {
   checkForUpdates,
   forceUpdateNow,
   DISMISSED_VERSION_KEY,
+  type VersionInfo,
 } from "../lib/updateCheck";
 import { useLang } from "../lib/i18n";
 
 export function UpdateNotice() {
   const { t } = useLang();
-  const [updateVersion, setUpdateVersion] = useState<string | null>(null);
+  const [updateVersion, setUpdateVersion] = useState<VersionInfo | null>(null);
   const {
     offlineReady: [offlineReady, setOfflineReady],
   } = useRegisterSW({
@@ -42,7 +43,7 @@ export function UpdateNotice() {
   const dismissUpdate = () => {
     if (updateVersion) {
       try {
-        sessionStorage.setItem(DISMISSED_VERSION_KEY, updateVersion);
+        sessionStorage.setItem(DISMISSED_VERSION_KEY, updateVersion.version);
       } catch {
         // ignore
       }
