@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getSettings } from "../lib/settings";
 import { getMonday, getTodayString, getWeekRange, formatDate, getDayLabel } from "../lib/dates";
+import { useLang } from "../lib/i18n";
 
 type Mode = "week" | "month" | "year";
 
@@ -11,11 +12,6 @@ interface WeekPickerModalProps {
   onClose: () => void;
 }
 
-const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
-
 function toDate(dateStr: string): Date {
   return new Date(dateStr + "T12:00:00");
 }
@@ -24,6 +20,7 @@ const navBtn =
   "px-3 py-1 border border-parchment-300 text-ink-600 text-xs uppercase tracking-widest font-mono cursor-pointer hover:border-ink-500 bg-parchment-50";
 
 export function WeekPickerModal({ open, currentStartDate, onSelect, onClose }: WeekPickerModalProps) {
+  const { t } = useLang();
   const [mode, setMode] = useState<Mode>("week");
   const [year, setYear] = useState(() => toDate(currentStartDate).getFullYear());
   const [month, setMonth] = useState(() => toDate(currentStartDate).getMonth());
@@ -80,20 +77,20 @@ export function WeekPickerModal({ open, currentStartDate, onSelect, onClose }: W
       className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-ink-900/60 p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
-      aria-label="Jump to week"
+      aria-label={t("picker.jumpAria")}
     >
       <div className="w-full max-w-3xl border-4 border-double border-ink-800 bg-parchment-50 text-ink-800">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-parchment-300">
           <div className="flex gap-4">
-            {tabBtn("week", "Week")}
-            {tabBtn("month", "Month")}
-            {tabBtn("year", "Year")}
+            {tabBtn("week", t("picker.week"))}
+            {tabBtn("month", t("picker.month"))}
+            {tabBtn("year", t("picker.year"))}
           </div>
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => jumpToWeek(today)} className={navBtn}>
-              Today
+              {t("picker.today")}
             </button>
-            <button type="button" onClick={onClose} aria-label="Close" className={navBtn}>
+            <button type="button" onClick={onClose} aria-label={t("picker.closeAria")} className={navBtn}>
               ✕
             </button>
           </div>
@@ -114,7 +111,7 @@ export function WeekPickerModal({ open, currentStartDate, onSelect, onClose }: W
                   ◄
                 </button>
                 <div className="font-mono text-sm uppercase tracking-widest text-ink-700">
-                  {MONTHS[month]} {year}
+                  {t(`month.${month}`)} {year}
                 </div>
                 <button
                   type="button"
@@ -161,7 +158,7 @@ export function WeekPickerModal({ open, currentStartDate, onSelect, onClose }: W
                       {d.slice(8)}
                       {isTodayDate && (
                         <span className="text-[8px] uppercase tracking-wider text-rust-600">
-                          today
+                          {t("picker.todayLabel")}
                         </span>
                       )}
                     </button>
@@ -184,12 +181,12 @@ export function WeekPickerModal({ open, currentStartDate, onSelect, onClose }: W
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {MONTHS.map((m, i) => {
+                {Array.from({ length: 12 }, (_, i) => i).map((i) => {
                   const active =
                     anchorDate.getFullYear() === year && anchorDate.getMonth() === i;
                   return (
                     <button
-                      key={m}
+                      key={i}
                       type="button"
                       onClick={() => jumpToWeek(new Date(year, i, 1))}
                       className={`py-3 border font-mono text-sm uppercase tracking-widest cursor-pointer transition-colors ${
@@ -198,7 +195,7 @@ export function WeekPickerModal({ open, currentStartDate, onSelect, onClose }: W
                           : "border-parchment-300 bg-parchment-50 text-ink-700 hover:border-ink-500"
                       }`}
                     >
-                      {m}
+                      {t(`month.${i}`)}
                     </button>
                   );
                 })}

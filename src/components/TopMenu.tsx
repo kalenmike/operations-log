@@ -1,19 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import type { ArchiveTab } from "../types";
+import { useLang } from "../lib/i18n";
 
 interface TopMenuProps {
   onNavigate: (tab: ArchiveTab) => void;
 }
 
-const items: { tab: ArchiveTab; label: string }[] = [
-  { tab: "metrics", label: "Metrics" },
-  { tab: "settings", label: "Settings" },
-  { tab: "data", label: "Data" },
-];
-
 export function TopMenu({ onNavigate }: TopMenuProps) {
+  const { t } = useLang();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const items: { tab: ArchiveTab; label: string }[] = [
+    { tab: "metrics", label: t("menu.metrics") },
+    { tab: "settings", label: t("menu.settings") },
+    { tab: "data", label: t("menu.data") },
+  ];
 
   useEffect(() => {
     if (!open) return;
@@ -33,7 +35,7 @@ export function TopMenu({ onNavigate }: TopMenuProps) {
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-2 px-3 py-2 border border-ink-600 bg-ink-800 text-parchment-100 text-xs uppercase tracking-widest font-mono cursor-pointer hover:bg-ink-700"
       >
-        <span>Menu</span>
+        <span>{t("menu.menu")}</span>
         <span className={`text-parchment-300 text-[9px] transition-transform ${open ? "rotate-180" : ""}`}>
           ▾
         </span>

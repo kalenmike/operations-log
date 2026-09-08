@@ -10,6 +10,7 @@ import {
   isToday,
   getWeek,
 } from "date-fns";
+import { es } from "date-fns/locale";
 import { getSettings } from "./settings";
 import type { DailyCheckin, Goal, WeekEntry } from "../types";
 import { emptyRatings } from "../types";
@@ -31,7 +32,8 @@ export function formatDate(date: Date): string {
 }
 
 export function formatDateDisplay(dateStr: string): string {
-  return format(parseISO(dateStr), "dd MMM yyyy");
+  const d = parseISO(dateStr);
+  return getSettings().language === "es" ? format(d, "dd MMM yyyy", { locale: es }) : format(d, "dd MMM yyyy");
 }
 
 export function formatExportDate(dateIso: string): string {
@@ -86,7 +88,10 @@ export function isWeekCurrent(startDate: string): boolean {
 
 export function getDayLabel(dayIndex: number): string {
   const ws = weekStart();
-  const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const labels =
+    getSettings().language === "es"
+      ? ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
+      : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   return labels[(dayIndex + ws) % 7];
 }
 

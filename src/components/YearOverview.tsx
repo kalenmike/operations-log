@@ -3,12 +3,14 @@ import { addDays, parseISO } from "date-fns";
 import type { WeekEntry } from "../types";
 import { formatDate, formatDateDisplay, findWeekForCell, getMonday, getWeekStartsInYear } from "../lib/dates";
 import { weekStatus, type WeekStatus } from "../lib/weekStatus";
+import { useLang } from "../lib/i18n";
 
 interface YearOverviewProps {
   weeks: WeekEntry[];
 }
 
 export function YearOverview({ weeks }: YearOverviewProps) {
+  const { t } = useLang();
   const [year, setYear] = useState(() => new Date().getFullYear());
   const weekStarts = getWeekStartsInYear(year);
   const currentStart = formatDate(getMonday(new Date()));
@@ -30,12 +32,12 @@ export function YearOverview({ weeks }: YearOverviewProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm uppercase tracking-widest font-mono text-ink-800">Annual Log</h3>
+        <h3 className="text-sm uppercase tracking-widest font-mono text-ink-800">{t("year.annualLog")}</h3>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setYear((y) => y - 1)}
-            aria-label="Previous year"
+            aria-label={t("perf.prevYear")}
             className="w-7 h-7 border border-parchment-300 text-ink-600 hover:border-ink-800 hover:text-ink-800 transition-colors cursor-pointer"
           >
             ‹
@@ -44,7 +46,7 @@ export function YearOverview({ weeks }: YearOverviewProps) {
           <button
             type="button"
             onClick={() => setYear((y) => y + 1)}
-            aria-label="Next year"
+            aria-label={t("perf.nextYear")}
             className="w-7 h-7 border border-parchment-300 text-ink-600 hover:border-ink-800 hover:text-ink-800 transition-colors cursor-pointer"
           >
             ›
@@ -53,7 +55,7 @@ export function YearOverview({ weeks }: YearOverviewProps) {
       </div>
 
       <p className="text-xs font-mono text-ink-600 mb-3">
-        {counts.complete} of {weekStarts.length} weeks complete
+        {t("year.complete", { n: counts.complete, total: weekStarts.length })}
       </p>
 
       <div className="grid grid-cols-[repeat(13,minmax(0,1fr))] gap-1">
@@ -64,7 +66,7 @@ export function YearOverview({ weeks }: YearOverviewProps) {
           return (
             <div
               key={start}
-              title={`W${i + 1} · ${formatDateDisplay(start)} — ${formatDateDisplay(to)} · ${status}`}
+              title={`W${i + 1} · ${formatDateDisplay(start)} — ${formatDateDisplay(to)} · ${t(`status.${status}`)}`}
               className={`aspect-square flex flex-col items-center justify-center border font-mono leading-none ${cellCls[status]} ${
                 isCurrent ? "ring-1 ring-ink-700" : ""
               }`}
@@ -79,15 +81,15 @@ export function YearOverview({ weeks }: YearOverviewProps) {
 
       <div className="flex flex-wrap gap-x-5 gap-y-1 mt-3 text-[10px] uppercase tracking-wider font-mono text-ink-500">
         <span className="inline-flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 border border-parchment-300 bg-parchment-100/60 inline-block" /> Missing
+          <span className="w-2.5 h-2.5 border border-parchment-300 bg-parchment-100/60 inline-block" /> {t("year.missing")}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 border border-gold-500 bg-gold-500/15 inline-block text-gold-700 text-center">◔</span>{" "}
-          Incomplete
+          {t("year.incomplete")}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 border border-olive-600 bg-olive-600 inline-block text-parchment-50 text-center">✓</span>{" "}
-          Complete
+          {t("year.complete2")}
         </span>
       </div>
     </div>

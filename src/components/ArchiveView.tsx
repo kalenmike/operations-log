@@ -4,6 +4,7 @@ import { Performance } from "./Performance";
 import { ExportImport } from "./ExportImport";
 import { SettingsPanel } from "./SettingsPanel";
 import { YearOverview } from "./YearOverview";
+import { useLang } from "../lib/i18n";
 
 interface ArchiveViewProps {
   weeks: WeekEntry[];
@@ -13,6 +14,7 @@ interface ArchiveViewProps {
 }
 
 export function ArchiveView({ weeks, initialTab, onImported, onExported }: ArchiveViewProps) {
+  const { t } = useLang();
   const [tab, setTab] = useState<ArchiveTab>(initialTab);
 
   const tabBtn = (tabId: ArchiveTab, label: string) => (
@@ -32,9 +34,9 @@ export function ArchiveView({ weeks, initialTab, onImported, onExported }: Archi
   return (
     <div className="space-y-6">
       <nav className="flex justify-center gap-4 sm:gap-8 border-b border-parchment-300">
-        {tabBtn("metrics", "Metrics")}
-        {tabBtn("settings", "Settings")}
-        {tabBtn("data", "Data")}
+        {tabBtn("metrics", t("menu.metrics"))}
+        {tabBtn("settings", t("menu.settings"))}
+        {tabBtn("data", t("menu.data"))}
       </nav>
 
       {tab === "metrics" && (

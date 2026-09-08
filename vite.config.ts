@@ -1,7 +1,39 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { execSync } from "node:child_process";
+import { mkdirSync, writeFileSync } from "node:fs";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import { resolve } from "node:path";
+import { defineConfig, type Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
+
+function versionFile(): Plugin {
+    const payload = (version: string) =>
+        JSON.stringify({ version, buildTime: new Date().toISOString() }, null, 2);
+    return {
+        name: "aar-version-file",
+        configureServer(server) {
+            server.middlewares.use(
+                "/version.json",
+                (_req: IncomingMessage, res: ServerResponse) => {
+                    res.setHeader("Content-Type", "application/json");
+                    res.end(payload("dev"));
+                },
+            );
+        },
+        writeBundle() {
+            let version = "";
+            try {
+                version = execSync("git rev-parse --short=8 HEAD", { encoding: "utf8" }).trim();
+            } catch {
+                version = `t${Math.floor(Date.now() / 1000)}`;
+            }
+            const outDir = resolve(process.cwd(), "dist");
+            mkdirSync(outDir, { recursive: true });
+            writeFileSync(resolve(outDir, "version.json"), payload(version));
+        },
+    };
+}
 
 export default defineConfig({
     base: "/",
@@ -9,6 +41,7 @@ export default defineConfig({
     plugins: [
         react(),
         tailwindcss(),
+        versionFile(),
         VitePWA({
             registerType: "prompt",
             injectRegister: false,
@@ -32,6 +65,7 @@ export default defineConfig({
             },
             workbox: {
                 globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+                globIgnores: ["**/version.json"],
                 runtimeCaching: [
                     {
                         urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

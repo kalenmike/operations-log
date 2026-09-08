@@ -2,6 +2,7 @@ import type { DailyCheckin, Goal, Rating } from "../types";
 import { MoodRating } from "./MoodRating";
 import { TextInput } from "./TextInput";
 import { GoalChecklist } from "./GoalChecklist";
+import { useLang } from "../lib/i18n";
 
 interface DayLogCardProps {
     date: string;
@@ -22,6 +23,7 @@ export function DayLogCard({
     onToggleGoal,
     onDelete,
 }: DayLogCardProps) {
+    const { t } = useLang();
     const hasData =
         checkin.reflections !== "" || checkin.moodRating > 0;
 
@@ -33,11 +35,11 @@ export function DayLogCard({
                         id={`day-${date}`}
                         className="text-sm uppercase tracking-[0.25em] text-ink-700 font-mono block"
                     >
-                        Day {dayIndex + 1} — {date.slice(5)}
+                        {t("daylog.day", { n: dayIndex + 1 })} — {date.slice(5)}
                     </a>
                     {hasData && !checkin.reflections && (
                         <span className="text-[10px] text-gold-600 font-mono uppercase tracking-widest">
-                            Mood only
+                            {t("daylog.moodOnly")}
                         </span>
                     )}
                 </div>
@@ -47,19 +49,19 @@ export function DayLogCard({
                         onClick={onDelete}
                         className="text-[10px] text-rust-500 hover:text-rust-600 uppercase tracking-widest font-mono cursor-pointer"
                     >
-                        Clear
+                        {t("daylog.clear")}
                     </button>
                 )}
             </div>
             <div className="space-y-4">
                 <GoalChecklist goals={goals} dayIndex={dayIndex} onToggle={onToggleGoal} />
                 <TextInput
-                    label="Daily Reflections"
+                    label={t("daylog.reflections")}
                     value={checkin.reflections}
                     onChange={(v) => onChange({ ...checkin, reflections: v })}
                     multiline
                     rows={5}
-                    placeholder="Log your reflections for the day..."
+                    placeholder={t("daylog.reflectionsPh")}
                 />
                 <MoodRating
                     value={checkin.moodRating}

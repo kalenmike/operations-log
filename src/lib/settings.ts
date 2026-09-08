@@ -1,8 +1,11 @@
 const SETTINGS_KEY = "aar-settings";
 
+export type Language = "en" | "es";
+
 export interface Settings {
   weekStartsOn: number; // 0=Sun ... 6=Sat (JS Date convention)
   weekStartsLabel: string;
+  language: Language;
 }
 
 export function getSettings(): Settings {
@@ -13,12 +16,13 @@ export function getSettings(): Settings {
       return {
         weekStartsOn: typeof parsed.weekStartsOn === "number" ? parsed.weekStartsOn : 1,
         weekStartsLabel: parsed.weekStartsLabel ?? "Monday",
+        language: parsed.language === "es" ? "es" : "en",
       };
     }
   } catch {
     // fall through to default
   }
-  return { weekStartsOn: 1, weekStartsLabel: "Monday" };
+  return { weekStartsOn: 1, weekStartsLabel: "Monday", language: "en" };
 }
 
 export function saveSettings(settings: Settings): void {

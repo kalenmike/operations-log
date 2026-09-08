@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { DailyCheckin } from "../types";
 import { getDayLabel, formatDate, formatDateDisplay, isTodayDate } from "../lib/dates";
 import { ChevronLeft, NotepadText, MessageCircle, MessageCircleOff } from "lucide-react";
+import { useLang } from "../lib/i18n";
 
 interface DayMoodListProps {
     startDate: string;
@@ -9,17 +10,11 @@ interface DayMoodListProps {
     checkins: DailyCheckin[];
 }
 
-const MOOD_LABELS: Record<number, string> = {
-    0: "",
-    1: "Struggling",
-    2: "Low",
-    3: "Steady",
-    4: "Good",
-    5: "Strong",
-};
-
 export function DayMoodList({ startDate, weekDays, checkins }: DayMoodListProps) {
+    const { t } = useLang();
     const [expanded, setExpanded] = useState<boolean>(false);
+
+    const moodLabel = (level: number) => (level > 0 ? t(`mood.${level}`) : "");
 
     void startDate;
 
@@ -27,7 +22,7 @@ export function DayMoodList({ startDate, weekDays, checkins }: DayMoodListProps)
         <div className="space-y-3">
             <div className="border-b border-parchment-300 pb-1 flex justify-between pr-4">
                 <h3 className="text-xs uppercase tracking-[0.2em] text-ink-400 font-mono">
-                    Daily Mood Log
+                    {t("daymood.title")}
                 </h3>
                 <button
                     type="button"
@@ -70,11 +65,11 @@ export function DayMoodList({ startDate, weekDays, checkins }: DayMoodListProps)
                                                 </span>
                                             </span>
                                             <span className="text-[10px] text-ink-400 uppercase tracking-wider font-mono">
-                                                {MOOD_LABELS[checkin.moodRating]}
+                                                {moodLabel(checkin.moodRating)}
                                             </span>
                                         </>
                                     ) : (
-                                        <span className="text-xs font-mono text-ink-300 italic">No Rating</span>
+                                        <span className="text-xs font-mono text-ink-300 italic">{t("daymood.noRating")}</span>
                                     )}
                                 </span>
                                 {checkin?.reflections.trim() && !expanded && (
@@ -90,7 +85,7 @@ export function DayMoodList({ startDate, weekDays, checkins }: DayMoodListProps)
                                             {checkin.reflections}
                                         </p>
                                     ) : (
-                                        <p className="text-xs font-mono text-ink-300 italic">No notes logged.</p>
+                                        <p className="text-xs font-mono text-ink-300 italic">{t("daymood.noNotes")}</p>
                                     )}
                                 </div>
                             )}

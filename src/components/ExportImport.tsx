@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import type { WeekEntry } from "../types";
 import { exportData, importData, saveLastExport } from "../lib/storage";
+import { useLang } from "../lib/i18n";
 
 interface ExportImportProps {
   weeks: WeekEntry[];
@@ -19,12 +20,13 @@ function download(filename: string, content: string, mime: string) {
 }
 
 export function ExportImport({ weeks, onImport, onExported }: ExportImportProps) {
+  const { t } = useLang();
   const fileRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   const handleExport = () => {
     if (weeks.length === 0) {
-      setMessage("Nothing to export yet.");
+      setMessage(t("data.nothing"));
       return;
     }
     const date = new Date();
@@ -33,7 +35,7 @@ export function ExportImport({ weeks, onImport, onExported }: ExportImportProps)
     const iso = date.toISOString();
     void saveLastExport(iso);
     onExported(iso);
-    setMessage("Backup exported.");
+    setMessage(t("data.exported"));
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,10 +46,14 @@ export function ExportImport({ weeks, onImport, onExported }: ExportImportProps)
       const imported = await importData(text);
       onImport(imported.weeks);
       setMessage(
-        `Imported ${imported.weeks.length} week(s) (backup v${imported.version}). Existing records were merged.`
+        t("data.imported", { n: imported.weeks.length, v: imported.version })
       );
     } catch (err) {
-      setMessage(`Import failed: ${err instanceof Error ? err.message : "invalid file"}`);
+      setMessage(
+        t("data.importFailed", {
+          msg: err instanceof Error ? err.message : t("data.invalidFile"),
+        })
+      );
     }
     e.target.value = "";
   };
@@ -60,14 +66,14 @@ export function ExportImport({ weeks, onImport, onExported }: ExportImportProps)
           onClick={handleExport}
           className="px-4 py-2 border border-ink-600 bg-ink-800 text-parchment-100 text-xs uppercase tracking-widest font-mono cursor-pointer hover:bg-ink-700"
         >
-          Export Backup
+          {t("data.export")}
         </button>
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
           className="px-4 py-2 border border-parchment-400 text-ink-700 text-xs uppercase tracking-widest font-mono cursor-pointer hover:border-ink-500"
         >
-          Import Backup
+          {t("data.import")}
         </button>
         <input
           ref={fileRef}
@@ -81,8 +87,7 @@ export function ExportImport({ weeks, onImport, onExported }: ExportImportProps)
         <p className="text-xs font-mono text-ink-400">{message}</p>
       )}
       <p className="text-xs font-mono text-ink-400">
-        All data is stored locally in your browser (IndexedDB). Export regularly
-        to keep your own backups. Nothing ever leaves this device.
+        {t("data.hint")}
       </p>
     </div>
   );

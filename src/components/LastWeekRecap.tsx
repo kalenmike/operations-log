@@ -1,30 +1,25 @@
 import { useState } from "react";
 import type { Ratings, WeekEntry } from "../types";
 import { formatDateDisplay } from "../lib/dates";
+import { useLang } from "../lib/i18n";
 
 interface LastWeekRecapProps {
     prevWeek: WeekEntry;
 }
 
-const DOMAIN_NAMES: Record<keyof Ratings, string> = {
-    spiritual: "Spiritual",
-    physical: "Physical",
-    intellectual: "Intellectual",
-    emotional: "Emotional",
-    social: "Social",
-};
-
-function worstAreas(ratings: Ratings): string[] {
+function worstAreas(ratings: Ratings): (keyof Ratings)[] {
     const rated = (Object.keys(ratings) as (keyof Ratings)[]).filter(
         (k) => ratings[k] > 0
     );
     if (rated.length === 0) return [];
     const min = Math.min(...rated.map((k) => ratings[k]));
-    return rated.filter((k) => ratings[k] === min).map((k) => DOMAIN_NAMES[k]);
+    return rated.filter((k) => ratings[k] === min);
 }
 
 export function LastWeekRecap({ prevWeek }: LastWeekRecapProps) {
+    const { t } = useLang();
     const worst = worstAreas(prevWeek.ratings);
+    const worstNames = worst.map((k) => t(`domain.${k}`));
     const doneGoals = prevWeek.goals.filter((g) => g.done.some(Boolean));
     const [open, setOpen] = useState(true);
 
@@ -37,10 +32,10 @@ export function LastWeekRecap({ prevWeek }: LastWeekRecapProps) {
                 className="w-full flex items-center justify-between gap-2 text-left cursor-pointer group"
             >
                 <h3 className="text-xs uppercase tracking-[0.2em] text-ink-500 font-mono group-hover:text-ink-700">
-                    Last Week Recap — {formatDateDisplay(prevWeek.startDate)}
+                    {t("recap.title")} — {formatDateDisplay(prevWeek.startDate)}
                 </h3>
                 <span className="text-[10px] font-mono text-ink-400 border border-parchment-300 px-1.5 py-0.5">
-                    {open ? "collapse" : "expand"}
+                    {open ? t("recap.collapse") : t("recap.expand")}
                 </span>
             </button>
 
@@ -51,11 +46,11 @@ export function LastWeekRecap({ prevWeek }: LastWeekRecapProps) {
                         <div className="space-y-3">
                             <div>
                                 <div className="text-[10px] uppercase tracking-wider text-gold-600 font-mono mb-1">
-                                    Weekly Goal
+                                    {t("week.goal")}
                                 </div>
                                 <p className="text-sm font-mono text-ink-700">
                                     {prevWeek.weeklyGoal.trim() || (
-                                        <span className="italic text-ink-300">None set.</span>
+                                        <span className="italic text-ink-300">{t("recap.noneSet")}</span>
                                     )}
                                 </p>
                             </div>
@@ -63,10 +58,10 @@ export function LastWeekRecap({ prevWeek }: LastWeekRecapProps) {
                             {doneGoals.length > 0 && (
                                 <div>
                                     <div className="text-[10px] uppercase tracking-wider text-gold-600 font-mono mb-1">
-                                        Objectives
+                                        {t("week.objectives")}
                                     </div>
                                     <p className="text-[10px] font-mono text-ink-400 italic mb-1">
-                                        Carry unfinished objectives forward in the Evaluate tab.
+                                        {t("recap.carryHint")}
                                     </p>
                                     <ul className="space-y-0.5">
                                         {doneGoals.map((g) => {
@@ -91,9 +86,9 @@ export function LastWeekRecap({ prevWeek }: LastWeekRecapProps) {
                             {worst.length > 0 && (
                                 <div>
                                     <div className="text-[10px] uppercase tracking-wider text-rust-600 font-mono mb-1">
-                                        Lowest Domain
+                                        {t("recap.lowestDomain")}
                                     </div>
-                                    <p className="text-sm font-mono text-ink-700">{worst.join(" & ")}</p>
+                                    <p className="text-sm font-mono text-ink-700">{worstNames.join(" & ")}</p>
                                     {prevWeek.worstAreaWhy.trim() && (
                                         <p className="text-xs font-mono text-ink-500 mt-1 whitespace-pre-wrap">
                                             “{prevWeek.worstAreaWhy.trim()}”
@@ -106,7 +101,7 @@ export function LastWeekRecap({ prevWeek }: LastWeekRecapProps) {
                         <div className="space-y-3">
                             <div>
                                 <div className="text-[10px] uppercase tracking-wider text-olive-600 font-mono mb-1">
-                                    Gave Energy
+                                    {t("energy.givers")}
                                 </div>
                                 <p className="text-xs font-mono text-ink-600 whitespace-pre-wrap">
                                     {prevWeek.energyGivers.filter((s) => s.trim()).join("\n") || (
@@ -116,7 +111,7 @@ export function LastWeekRecap({ prevWeek }: LastWeekRecapProps) {
                             </div>
                             <div>
                                 <div className="text-[10px] uppercase tracking-wider text-rust-600 font-mono mb-1">
-                                    Drained Energy
+                                    {t("energy.drainers")}
                                 </div>
                                 <p className="text-xs font-mono text-ink-600 whitespace-pre-wrap">
                                     {prevWeek.energyDrainers.filter((s) => s.trim()).join("\n") || (
@@ -127,7 +122,7 @@ export function LastWeekRecap({ prevWeek }: LastWeekRecapProps) {
                             {prevWeek.carriedNote?.trim() && (
                                 <div>
                                     <div className="text-[10px] uppercase tracking-wider text-gold-600 font-mono mb-1">
-                                        Words to Carry Over
+                                        {t("carry.words")}
                                     </div>
                                     <p className="text-xs font-mono text-ink-600 italic whitespace-pre-wrap">
                                         “{prevWeek.carriedNote.trim()}”

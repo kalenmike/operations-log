@@ -1,4 +1,5 @@
 import type { Goal } from "../types";
+import { useLang } from "../lib/i18n";
 
 interface GoalChecklistProps {
   goals: Goal[];
@@ -7,10 +8,11 @@ interface GoalChecklistProps {
 }
 
 export function GoalChecklist({ goals, dayIndex, onToggle }: GoalChecklistProps) {
+  const { t } = useLang();
   if (goals.length === 0) {
     return (
       <p className="text-sm font-mono text-ink-400 italic">
-        No objectives set for this week. Set them in the Plan tab.
+        {t("checklist.none")}
       </p>
     );
   }
@@ -18,7 +20,7 @@ export function GoalChecklist({ goals, dayIndex, onToggle }: GoalChecklistProps)
   return (
     <div className="space-y-3">
       <h3 className="text-xs uppercase tracking-[0.2em] text-ink-400 border-b border-parchment-300 pb-1">
-        Today's Objectives
+        {t("checklist.todays")}
       </h3>
       <div className="space-y-2">
         {goals.map((goal) => {

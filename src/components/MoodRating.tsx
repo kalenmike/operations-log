@@ -1,4 +1,5 @@
 import type { Rating } from "../types";
+import { useLang } from "../lib/i18n";
 
 interface MoodRatingProps {
   value: Rating;
@@ -6,19 +7,20 @@ interface MoodRatingProps {
   readonly?: boolean;
 }
 
-const MOOD_LABELS: Record<Rating, string> = {
-  1: "Struggling",
-  2: "Low",
-  3: "Steady",
-  4: "Good",
-  5: "Strong",
-};
-
 export function MoodRating({ value, onChange, readonly }: MoodRatingProps) {
+  const { t } = useLang();
+  const MOOD_LABELS: Record<Rating, string> = {
+    1: t("mood.1"),
+    2: t("mood.2"),
+    3: t("mood.3"),
+    4: t("mood.4"),
+    5: t("mood.5"),
+  };
+
   return (
     <div className="flex flex-col gap-1">
       <label className="text-xs uppercase tracking-[0.2em] text-ink-400 font-mono">
-        Daily Mood
+        {t("mood.dailyMood")}
       </label>
       <div className="flex gap-1">
         {([1, 2, 3, 4, 5] as const).map((level) => (
@@ -26,7 +28,7 @@ export function MoodRating({ value, onChange, readonly }: MoodRatingProps) {
             key={level}
             type="button"
             disabled={readonly}
-            aria-label={`Mood ${level} of 5 — ${MOOD_LABELS[level]}`}
+            aria-label={t("mood.aria", { level, label: MOOD_LABELS[level] })}
             onClick={() => onChange?.(level)}
             className={`flex-1 flex flex-col items-center justify-center px-1 py-2 border text-xs font-mono uppercase tracking-wider transition-colors min-w-0 ${
               readonly ? "cursor-default" : "cursor-pointer"

@@ -23,6 +23,7 @@ import { UpdateNotice } from "./components/UpdateNotice";
 import { WeekPickerModal } from "./components/WeekPickerModal";
 import { LastWeekRecap } from "./components/LastWeekRecap";
 import { WeekReport } from "./components/WeekReport";
+import { useLang } from "./lib/i18n";
 
 function getTodayStringStable() {
     return getTodayString();
@@ -37,6 +38,7 @@ function emptyCheckin(date: string): DailyCheckin {
 }
 
 function App() {
+    const { t } = useLang();
     const [searchParams] = useSearchParams();
     const seedWeek = validWeek(searchParams.get("week"));
 
@@ -97,7 +99,7 @@ function App() {
         return (
             <div className="min-h-screen flex items-center justify-center bg-parchment-50">
                 <div className="font-mono text-ink-500 text-sm tracking-widest uppercase animate-pulse">
-                    Opening the log...
+                    {t("app.loading")}
                 </div>
             </div>
         );
@@ -107,7 +109,7 @@ function App() {
         return (
             <div className="min-h-screen flex items-center justify-center bg-parchment-50">
                 <div className="font-mono text-ink-500 text-sm tracking-widest uppercase">
-                    No active week.
+                    {t("app.noWeek")}
                 </div>
             </div>
         );
@@ -173,8 +175,8 @@ function App() {
                                     className="justify-self-center px-2.5 py-1.5 border border-rust-500 bg-rust-500 text-parchment-50 text-[11px] uppercase tracking-widest font-mono cursor-pointer hover:bg-rust-600 whitespace-nowrap"
                                 >
                                     {currentWeek.startDate < currentWeekStart
-                                        ? "Jump to Current Week ►"
-                                        : "◀ Jump to Current Week"}
+                                        ? t("nav.jump.past")
+                                        : t("nav.jump.future")}
                                 </button>
                             )
                         ) : (
@@ -183,7 +185,7 @@ function App() {
                                 onClick={() => setPage("ops")}
                                 className="justify-self-center px-2.5 py-1.5 border border-ink-600 bg-ink-800 text-parchment-100 text-[11px] uppercase tracking-widest font-mono cursor-pointer hover:bg-ink-700 whitespace-nowrap"
                             >
-                                ◄ Back to Operations Log
+                                ◄ {t("nav.backToOps")}
                             </button>
                         )}
 
@@ -206,11 +208,11 @@ function App() {
                                 type="button"
                                 onClick={() => setPickerOpen(true)}
                                 aria-haspopup="dialog"
-                                aria-label="Jump to week, month, or year"
+                                aria-label={t("nav.jumpAria")}
                                 className="px-2 text-center min-w-[200px] sm:min-w-[250px] cursor-pointer border border-transparent hover:border-ink-400 hover:bg-parchment-100 transition-colors"
                             >
                                 <span className="uppercase tracking-widest font-bold">
-                                    WK {getWeekNumber(currentWeek.startDate)} · {currentWeek.startDate.slice(0, 4)}
+                                    {t("common.weekShort")} {getWeekNumber(currentWeek.startDate)} · {currentWeek.startDate.slice(0, 4)}
                                 </span>
                                 <div className="text-[10px] text-ink-400 mt-0.5">
                                     {formatDateDisplay(currentWeek.startDate)}
@@ -225,9 +227,9 @@ function App() {
 
                         <nav className="flex justify-center sm:border-b sm:border-parchment-300 mb-2 sm:mb-6 ">
                             <div className="grid w-full grid-cols-3 sm:flex sm:gap-8 border-b-0 border-ink-800">
-                                {tabBtn("plan", "Plan", tab === "plan")}
-                                {tabBtn("execute", "Execute", tab === "execute")}
-                                {tabBtn("evaluate", "Evaluate", tab === "evaluate")}
+                                {tabBtn("plan", t("tab.plan"), tab === "plan")}
+                                {tabBtn("execute", t("tab.execute"), tab === "execute")}
+                                {tabBtn("evaluate", t("tab.evaluate"), tab === "evaluate")}
                             </div>
                         </nav>
 
@@ -274,16 +276,16 @@ function App() {
                 )}
 
                 <footer className="mt-8 text-center text-[10px] font-mono text-ink-400 uppercase tracking-[0.3em]">
-                    <div>Local only · Your device · Your data</div>
+                    <div>{t("footer.localOnly")}</div>
                     <div className="mt-2 text-[10px] tracking-[0.2em]">
-                        Last exported:{" "}
+                        {t("footer.lastExported")}{" "}
                         <span className="text-ink-600">
-                            {lastExport ? formatExportDate(lastExport) : "Never exported"}
+                            {lastExport ? formatExportDate(lastExport) : t("footer.neverExported")}
                         </span>
                     </div>
                     {backupDue && (
                         <div className="mt-1 text-rust-600 font-bold tracking-[0.2em]">
-                            Remember to back up your data.
+                            {t("footer.backupDue")}
                         </div>
                     )}
                 </footer>

@@ -1,12 +1,11 @@
 import type { Goal } from "../types";
 import { getDayLabel } from "../lib/dates";
+import { useLang } from "../lib/i18n";
 
 interface ObjectiveTrackerProps {
     goals: Goal[];
     onCarryGoal?: (goal: Goal) => void;
 }
-
-const DAYS = Array.from({ length: 7 }, (_, i) => getDayLabel(i));
 
 function Cell({ checked, dayLabel, compact }: { checked: boolean; dayLabel: string; compact?: boolean }) {
     return (
@@ -24,6 +23,8 @@ function Cell({ checked, dayLabel, compact }: { checked: boolean; dayLabel: stri
 }
 
 export function ObjectiveTracker({ goals, onCarryGoal }: ObjectiveTrackerProps) {
+    const { t } = useLang();
+    const DAYS = Array.from({ length: 7 }, (_, i) => getDayLabel(i));
     const daysHit = goals.reduce((acc, g) => acc + g.done.filter(Boolean).length, 0);
 
     const carryControl = (goal: Goal) => {
@@ -32,9 +33,9 @@ export function ObjectiveTracker({ goals, onCarryGoal }: ObjectiveTrackerProps) 
             return (
                 <span
                     className="shrink-0 text-[10px] font-mono uppercase tracking-widest text-olive-600 border border-olive-600/40 px-1.5 py-0.5"
-                    title="Pushed to next week"
+                    title={t("tracker.pushedTitle")}
                 >
-                    ↻ carried
+                    {t("tracker.carried")}
                 </span>
             );
         }
@@ -43,12 +44,12 @@ export function ObjectiveTracker({ goals, onCarryGoal }: ObjectiveTrackerProps) 
             <button
                 type="button"
                 onClick={() => onCarryGoal(goal)}
-                aria-label={`Carry "${goal.text}" to next week`}
+                aria-label={t("tracker.carryAria", { text: goal.text })}
                 className="shrink-0 text-[10px] font-mono uppercase tracking-widest text-ink-500 border border-parchment-300 px-1.5 py-0.5 hover:border-ink-500 hover:text-ink-700 cursor-pointer disabled:opacity-40 disabled:cursor-default"
                 disabled={!incomplete}
-                title={incomplete ? "Carry this objective to next week" : "Completed — nothing to carry"}
+                title={incomplete ? t("tracker.carryTitle") : t("tracker.doneTitle")}
             >
-                ↻ carry
+                {t("tracker.carry")}
             </button>
         );
     };
@@ -57,18 +58,18 @@ export function ObjectiveTracker({ goals, onCarryGoal }: ObjectiveTrackerProps) 
         <div className="space-y-3">
             <div className="border-b border-parchment-300 pb-1 flex items-center justify-between">
                 <h3 className="text-xs uppercase tracking-[0.2em] text-ink-400 font-mono">
-                    Objectives
+                    {t("week.objectives")}
                 </h3>
                 {goals.length > 0 && (
                     <span className="text-xs font-mono text-ink-400">
-                        {(daysHit / goals.length * 7).toFixed(0)}% hit rate
+                        {t("tracker.hitRate", { pct: (daysHit / goals.length * 7).toFixed(0) })}
                     </span>
                 )}
             </div>
 
             {goals.length === 0 ? (
                 <p className="text-sm font-mono text-ink-400 italic">
-                    No objectives set for this week.
+                    {t("tracker.none")}
                 </p>
             ) : (
                 <>
@@ -76,7 +77,7 @@ export function ObjectiveTracker({ goals, onCarryGoal }: ObjectiveTrackerProps) 
                         <table className="w-full text-sm font-mono">
                             <thead>
                                 <tr className="text-xs text-ink-400">
-                                    <th className="text-left py-1 pr-2 w-40">Objective</th>
+                                    <th className="text-left py-1 pr-2 w-40">{t("tracker.objectiveCol")}</th>
                                     {DAYS.map((d, i) => (
                                         <th key={i} className="py-1 px-1 text-center w-10">
                                             {d}

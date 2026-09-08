@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { WeekEntry } from "../types";
 import { findWeekForCell, formatDate, getMonday, getWeekStartsInYear } from "../lib/dates";
 import { weekStatus } from "../lib/weekStatus";
+import { useLang } from "../lib/i18n";
 
 interface PerformanceProps {
   weeks: WeekEntry[];
@@ -15,13 +16,6 @@ const PAD_T = 10;
 const PAD_B = 18;
 
 const DOMAIN_KEYS = ["spiritual", "physical", "intellectual", "emotional", "social"] as const;
-const DOMAIN_LABELS: Record<(typeof DOMAIN_KEYS)[number], string> = {
-  spiritual: "Spiritual",
-  physical: "Physical",
-  intellectual: "Intellectual",
-  emotional: "Emotional",
-  social: "Social",
-};
 
 function average(nums: number[]): number {
   if (nums.length === 0) return 0;
@@ -58,6 +52,7 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
 }
 
 export function Performance({ weeks }: PerformanceProps) {
+  const { t } = useLang();
   const [year, setYear] = useState(() => new Date().getFullYear());
   const currentStart = formatDate(getMonday(new Date()));
 
@@ -213,12 +208,12 @@ export function Performance({ weeks }: PerformanceProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between border-b border-parchment-300 pb-1">
-        <h2 className="text-xs uppercase tracking-[0.2em] text-ink-400">Performance Overview</h2>
+        <h2 className="text-xs uppercase tracking-[0.2em] text-ink-400">{t("perf.title")}</h2>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setYear((y) => y - 1)}
-            aria-label="Previous year"
+            aria-label={t("perf.prevYear")}
             className="w-7 h-7 border border-parchment-300 text-ink-600 hover:border-ink-800 hover:text-ink-800 transition-colors cursor-pointer"
           >
             ‹
@@ -227,7 +222,7 @@ export function Performance({ weeks }: PerformanceProps) {
           <button
             type="button"
             onClick={() => setYear((y) => y + 1)}
-            aria-label="Next year"
+            aria-label={t("perf.nextYear")}
             className="w-7 h-7 border border-parchment-300 text-ink-600 hover:border-ink-800 hover:text-ink-800 transition-colors cursor-pointer"
           >
             ›
@@ -237,26 +232,30 @@ export function Performance({ weeks }: PerformanceProps) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-sm">
         <StatCard
-          label="Log Completion"
+          label={t("perf.logCompletion")}
           value={`${stats.logPct}%`}
-          sub={`${stats.completed}/${stats.totalWeeks} weeks`}
+          sub={t("perf.weeksSub", { done: stats.completed, total: stats.totalWeeks })}
         />
         <StatCard
-          label="Objective Completion"
+          label={t("perf.objCompletion")}
           value={stats.objectivePct === null ? "—" : `${stats.objectivePct}%`}
-          sub={stats.objectivePct === null ? "No objectives" : "avg per objective"}
+          sub={stats.objectivePct === null ? t("perf.noObjectives") : t("perf.avgPerObjective")}
         />
-        <StatCard label="Week Streak" value={`${stats.streak}`} sub={stats.streak === 1 ? "week" : "weeks"} />
         <StatCard
-          label="Average Mood"
+          label={t("perf.streak")}
+          value={`${stats.streak}`}
+          sub={stats.streak === 1 ? t("unit.week") : t("unit.weeks")}
+        />
+        <StatCard
+          label={t("perf.avgMood")}
           value={stats.avgMood === null ? "—" : stats.avgMood.toFixed(1)}
-          sub={stats.avgMood === null ? "No check-ins" : "of 5.0"}
+          sub={stats.avgMood === null ? t("perf.noCheckins") : t("perf.of5")}
         />
       </div>
 
       <div className="p-3 border border-parchment-200 bg-parchment-100/50">
-        <div className="text-[10px] uppercase tracking-wider text-ink-400 mb-2">Mood Trend</div>
-        <svg viewBox={`0 0 ${PLOT_W} ${PLOT_H}`} className="w-full h-auto" role="img" aria-label="Weekly average mood with trend line">
+        <div className="text-[10px] uppercase tracking-wider text-ink-400 mb-2">{t("perf.moodTrend")}</div>
+        <svg viewBox={`0 0 ${PLOT_W} ${PLOT_H}`} className="w-full h-auto" role="img" aria-label={t("perf.svgAria")}>
           <rect
             x={PAD_L}
             y={PAD_T}
@@ -341,12 +340,12 @@ export function Performance({ weeks }: PerformanceProps) {
         {trendLine && (
           <div className="flex items-center gap-4 mt-2 text-[10px] uppercase tracking-wider font-mono text-ink-500">
             <span className="inline-flex items-center gap-1.5">
-              <span className="inline-block w-2.5 h-2.5 bg-gold-500 border border-ink-600" /> Week mood
+              <span className="inline-block w-2.5 h-2.5 bg-gold-500 border border-ink-600" /> {t("perf.moodLegend")}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="inline-block w-4 border-t border-dashed border-rust-500" /> Trend
+              <span className="inline-block w-4 border-t border-dashed border-rust-500" /> {t("perf.trendLegend")}
             </span>
-            <span className="text-rust-600">{trendLine.slope >= 0 ? "▲" : "▼"} {Math.abs(trendLine.slope * 10).toFixed(1)}/10 wks</span>
+            <span className="text-rust-600">{t("perf.slope", { arrow: trendLine.slope >= 0 ? "▲" : "▼", v: Math.abs(trendLine.slope * 10).toFixed(1) })}</span>
           </div>
         )}
       </div>
@@ -354,45 +353,51 @@ export function Performance({ weeks }: PerformanceProps) {
       {focusHint && (
         <div className="p-3 border border-gold-500 bg-gold-500/10">
           <div className="text-[10px] uppercase tracking-wider text-gold-700 font-mono mb-1">
-            Focus Hint
+            {t("perf.focusHint")}
           </div>
           <p className="text-sm font-mono text-ink-800">
-            {DOMAIN_LABELS[focusHint.domain]} was your lowest-rated domain in {focusHint.n} of the
-            last {focusHint.of} logged weeks. Consider aiming this week's goal there.
+            {t("perf.focusBody", {
+              domain: t(`domain.${focusHint.domain}`),
+              n: focusHint.n,
+              of: focusHint.of,
+            })}
           </p>
         </div>
       )}
 
       <div className="p-3 border border-parchment-200 bg-parchment-100/50">
-        <div className="text-[10px] uppercase tracking-wider text-ink-400 mb-3">Domain Heatmap</div>
+        <div className="text-[10px] uppercase tracking-wider text-ink-400 mb-3">{t("perf.heatmap")}</div>
         <div className="space-y-1.5">
-          {DOMAIN_KEYS.map((d) => (
-            <div key={d} className="flex items-center gap-2">
-              <div className="w-16 shrink-0 text-[9px] font-mono uppercase tracking-wider text-ink-500 text-right truncate">
-                {DOMAIN_LABELS[d]}
+          {DOMAIN_KEYS.map((d) => {
+            const dlabel = t(`domain.${d}`);
+            return (
+              <div key={d} className="flex items-center gap-2">
+                <div className="w-20 shrink-0 text-[9px] font-mono uppercase tracking-wider text-ink-500 text-right truncate">
+                  {dlabel}
+                </div>
+                <div
+                  className="flex-1 grid gap-px bg-parchment-200 p-px"
+                  style={{ gridTemplateColumns: `repeat(${cells.length}, 1fr)` }}
+                >
+                  {cells.map((start, i) => {
+                    const w = findWeekForCell(weeks, start);
+                    const r = w ? Number(w.ratings[d]) : 0;
+                    return (
+                      <div
+                        key={i}
+                        title={w ? `${dlabel} · ${t("common.weekShort")} ${i + 1} · ${r} / 5` : `${dlabel} · ${t("common.weekShort")} ${i + 1} · ${t("perf.noDataCell")}`}
+                        className={`aspect-square ${RATING_CELL_CLASS[r] ?? RATING_CELL_CLASS[0]}`}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-              <div
-                className="flex-1 grid gap-px bg-parchment-200 p-px"
-                style={{ gridTemplateColumns: `repeat(${cells.length}, 1fr)` }}
-              >
-                {cells.map((start, i) => {
-                  const w = findWeekForCell(weeks, start);
-                  const r = w ? Number(w.ratings[d]) : 0;
-                  return (
-                    <div
-                      key={i}
-                      title={w ? `${DOMAIN_LABELS[d]} · WK ${i + 1} · ${r} / 5` : `${DOMAIN_LABELS[d]} · WK ${i + 1} · no data`}
-                      className={`aspect-square ${RATING_CELL_CLASS[r] ?? RATING_CELL_CLASS[0]}`}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div className="mt-2 flex items-center gap-3 text-[9px] font-mono uppercase tracking-wider text-ink-400 overflow-x-auto">
           <span className="inline-flex items-center gap-1">
-            <span className="inline-block w-2.5 h-2.5 bg-parchment-100 border border-parchment-200" /> none
+            <span className="inline-block w-2.5 h-2.5 bg-parchment-100 border border-parchment-200" /> {t("perf.legendNone")}
           </span>
           <span className="inline-flex items-center gap-1">
             <span className="inline-block w-2.5 h-2.5 bg-rust-500" /> 1
@@ -409,15 +414,15 @@ export function Performance({ weeks }: PerformanceProps) {
           <span className="inline-flex items-center gap-1">
             <span className="inline-block w-2.5 h-2.5 bg-olive-500" /> 5
           </span>
-          <span className="ml-auto">weeks 1–{cells.length}</span>
+          <span className="ml-auto">{t("perf.weeksLabel", { n: cells.length })}</span>
         </div>
       </div>
 
       <div className="p-3 border border-parchment-200 bg-parchment-100/50">
-        <div className="text-[10px] uppercase tracking-wider text-ink-400 mb-2">Repeated Energy Themes</div>
+        <div className="text-[10px] uppercase tracking-wider text-ink-400 mb-2">{t("perf.themes")}</div>
         {themes.length === 0 ? (
           <p className="text-xs font-mono text-ink-400 italic">
-            No repeat themes yet. Log energy givers &amp; drainers each week to spot patterns.
+            {t("perf.noThemes")}
           </p>
         ) : (
           <ul className="space-y-1">

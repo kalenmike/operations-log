@@ -2,6 +2,7 @@ import type { Ratings, WeekEntry, Rating } from "../types";
 import { DomainRatings } from "./DomainRatings";
 import { TextInput } from "./TextInput";
 import { GoalManager } from "./GoalManager";
+import { useLang } from "../lib/i18n";
 
 interface PlanViewProps {
   week: WeekEntry;
@@ -9,15 +10,7 @@ interface PlanViewProps {
   onChange: (week: WeekEntry) => void;
 }
 
-const DOMAIN_NAMES: Record<keyof Ratings, string> = {
-  spiritual: "Spiritual",
-  physical: "Physical",
-  intellectual: "Intellectual",
-  emotional: "Emotional",
-  social: "Social",
-};
-
-function rankAreas(ratings: Ratings): { best: string[]; worst: string[] } {
+function rankAreas(ratings: Ratings): { best: (keyof Ratings)[]; worst: (keyof Ratings)[] } {
   const rated = (Object.keys(ratings) as (keyof Ratings)[]).filter(
     (k) => ratings[k] > 0
   );
@@ -26,17 +19,9 @@ function rankAreas(ratings: Ratings): { best: string[]; worst: string[] } {
   const max = Math.max(...values);
   const min = Math.min(...values);
   return {
-    best: rated.filter((k) => ratings[k] === max).map((k) => DOMAIN_NAMES[k]),
-    worst: rated.filter((k) => ratings[k] === min).map((k) => DOMAIN_NAMES[k]),
+    best: rated.filter((k) => ratings[k] === max),
+    worst: rated.filter((k) => ratings[k] === min),
   };
-}
-
-function plural(n: number): string {
-  return n === 1 ? "this domain" : "these domains";
-}
-
-function bestDomainRef(n: number): string {
-  return n === 1 ? "the best domain" : "the best domains";
 }
 
 function AreaField({
@@ -48,6 +33,7 @@ function AreaField({
   names: string[];
   tone: string;
 }) {
+  const { t } = useLang();
   return (
     <div>
       <div className="text-xs uppercase tracking-[0.2em] text-ink-400 font-mono mb-1">
@@ -58,7 +44,7 @@ function AreaField({
           <span className={tone}>{names.join(" & ")}</span>
         ) : (
           <span className="italic text-ink-300">
-            Rate your domains above to auto-compute.
+            {t("plan.rateHint")}
           </span>
         )}
       </div>
@@ -67,6 +53,7 @@ function AreaField({
 }
 
 export function PlanView({ week, previousRatings, onChange }: PlanViewProps) {
+  const { t } = useLang();
   const updateRatings = (key: keyof Ratings, value: Rating) => {
     onChange({ ...week, ratings: { ...week.ratings, [key]: value } });
   };
@@ -76,8 +63,10 @@ export function PlanView({ week, previousRatings, onChange }: PlanViewProps) {
   };
 
   const { best, worst } = rankAreas(week.ratings);
-  const bestPlaceholder = `Is there a specific action or habit making a difference? What action is making ${plural(best.length)} the best?`;
-  const worstPlaceholder = `What small step can improve ${plural(worst.length)}? Can you apply insights from ${bestDomainRef(best.length)}?`;
+  const bestNames = best.map((k) => t(`domain.${k}`));
+  const worstNames = worst.map((k) => t(`domain.${k}`));
+  const bestPlaceholder = t(best.length === 1 ? "plan.best.single" : "plan.best.plural");
+  const worstPlaceholder = t(worst.length === 1 ? "plan.worst.single" : "plan.worst.plural");
 
   return (
     <div className="space-y-6">
@@ -87,21 +76,21 @@ export function PlanView({ week, previousRatings, onChange }: PlanViewProps) {
 
       <section className="border border-parchment-200 bg-parchment-50 p-4 sm:p-6">
         <h3 className="text-xs uppercase tracking-[0.2em] text-ink-400 border-b border-parchment-300 pb-1 mb-4">
-          Best & Worst Assessment
+          {t("plan.bestWorst")}
         </h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <AreaField
-            label="Best Area"
-            names={best}
+            label={t("plan.best")}
+            names={bestNames}
             tone="text-olive-700"
           />
           <AreaField
-            label="Worst Area"
-            names={worst}
+            label={t("plan.worst")}
+            names={worstNames}
             tone="text-rust-600"
           />
           <TextInput
-            label="Why Best"
+            label={t("plan.whyBest")}
             value={week.bestAreaWhy}
             onChange={(v) => onChange({ ...week, bestAreaWhy: v })}
             multiline
@@ -109,7 +98,7 @@ export function PlanView({ week, previousRatings, onChange }: PlanViewProps) {
             placeholder={bestPlaceholder}
           />
           <TextInput
-            label="Why Worst"
+            label={t("plan.whyWorst")}
             value={week.worstAreaWhy}
             onChange={(v) => onChange({ ...week, worstAreaWhy: v })}
             multiline
@@ -122,12 +111,12 @@ export function PlanView({ week, previousRatings, onChange }: PlanViewProps) {
       <section className="border border-parchment-200 bg-parchment-50 p-4 sm:p-6">
         <div className="space-y-4">
           <TextInput
-            label="Weekly Goal"
+            label={t("week.goal")}
             value={week.weeklyGoal}
             onChange={(v) => onChange({ ...week, weeklyGoal: v })}
             multiline
             rows={2}
-            placeholder="One clear mission objective for the week"
+            placeholder={t("plan.weeklyGoalPh")}
           />
           <GoalManager goals={week.goals} onChange={updateGoals} />
         </div>

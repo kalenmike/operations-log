@@ -6,6 +6,7 @@ import {
     isTodayDate,
 } from "../lib/dates";
 import { DayLogCard } from "./DailyCheckin";
+import { useLang } from "../lib/i18n";
 
 interface ExecuteViewProps {
     week: WeekEntry;
@@ -28,6 +29,7 @@ export function ExecuteView({
     onToggleGoal,
     prevWeekQuote,
 }: ExecuteViewProps) {
+    const { t } = useLang();
     const weekDays = getWeekDays(week.startDate);
 
 
@@ -45,23 +47,23 @@ export function ExecuteView({
         <div className="space-y-4">
             <section className="border border-parchment-200 bg-parchment-50 p-3 sm:p-4">
                 <h3 className="text-xs uppercase tracking-[0.2em] text-ink-400 font-mono mb-3 border-b border-parchment-300 pb-1">
-                    Mission Brief
+                    {t("exec.missionBrief")}
                 </h3>
                 <div className={`grid gap-3 ${quote ? "sm:grid-cols-2" : ""}`}>
                     <div>
                         <div className="text-[10px] uppercase tracking-wider text-gold-600 font-mono mb-1">
-                            Weekly Goal
+                            {t("week.goal")}
                         </div>
                         <p className="text-sm font-mono text-ink-700">
                             {week.weeklyGoal.trim() || (
-                                <span className="italic text-ink-300">None set for this week.</span>
+                                <span className="italic text-ink-300">{t("exec.noneThisWeek")}</span>
                             )}
                         </p>
                     </div>
                     {quote && (
                         <div>
                             <div className="text-[10px] uppercase tracking-wider text-gold-600 font-mono mb-1">
-                                Words to Carry Over
+                                {t("carry.words")}
                             </div>
                             <p className="text-sm font-mono text-ink-600 italic whitespace-pre-wrap">
                                 “{quote}”
@@ -75,7 +77,7 @@ export function ExecuteView({
                 <aside>
                     <div className="border border-parchment-200 bg-parchment-50 p-3 lg:sticky lg:top-4">
                         <h3 className="text-xs uppercase tracking-[0.2em] text-ink-400 mb-3 font-mono">
-                            Execution Days
+                            {t("exec.executionDays")}
                         </h3>
                         <div className="lg:hidden grid grid-cols-7 gap-1">
                             {weekDays.map((day, i) => {

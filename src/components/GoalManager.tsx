@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { v4 as uuid } from "uuid";
 import type { Goal } from "../types";
+import { useLang } from "../lib/i18n";
 
 interface GoalManagerProps {
   goals: Goal[];
@@ -10,6 +11,7 @@ interface GoalManagerProps {
 const RECOMMENDED_MAX = 3;
 
 export function GoalManager({ goals, onChange }: GoalManagerProps) {
+  const { t } = useLang();
   const [newGoal, setNewGoal] = useState("");
 
   const addGoal = () => {
@@ -35,7 +37,7 @@ export function GoalManager({ goals, onChange }: GoalManagerProps) {
     <div className="space-y-3">
       <div className="border-b border-parchment-300 pb-1 flex items-center justify-between">
         <h3 className="text-xs uppercase tracking-[0.2em] text-ink-400 font-mono">
-          Objectives
+          {t("week.objectives")}
         </h3>
         <span
           className={`text-xs font-mono font-bold ${
@@ -48,13 +50,13 @@ export function GoalManager({ goals, onChange }: GoalManagerProps) {
 
       {overLimit && (
         <p className="text-xs font-mono text-rust-600">
-          Over recommended limit. 3 or fewer objectives keeps focus sharp.
+          {t("goal.overLimit")}
         </p>
       )}
 
       {goals.length === 0 && (
         <p className="text-sm font-mono text-ink-400 italic">
-          No objectives set. Add a few to define the week.
+          {t("goal.noneSet")}
         </p>
       )}
 
@@ -63,7 +65,7 @@ export function GoalManager({ goals, onChange }: GoalManagerProps) {
           <div key={goal.id} className="flex items-center gap-2">
             {goal.carried && (
               <span
-                title="Carried over from the previous week"
+                title={t("goal.carriedTitle")}
                 className="shrink-0 text-[10px] font-mono uppercase tracking-widest text-olive-600 border border-olive-600/40 px-1.5 py-0.5"
               >
                 ↻
@@ -73,7 +75,7 @@ export function GoalManager({ goals, onChange }: GoalManagerProps) {
               type="text"
               value={goal.text}
               onChange={(e) => updateGoal(goal.id, e.target.value)}
-              aria-label={`Objective ${index + 1}`}
+              aria-label={t("goal.objectiveAria", { n: index + 1 })}
               className="flex-1 px-3 py-2 border border-parchment-300 bg-parchment-50 text-sm font-mono text-ink-700 placeholder:text-ink-300 focus:outline-none focus:border-ink-500"
             />
             <button
@@ -93,8 +95,8 @@ export function GoalManager({ goals, onChange }: GoalManagerProps) {
           value={newGoal}
           onChange={(e) => setNewGoal(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addGoal()}
-          placeholder="Add objective..."
-          aria-label="Add new objective"
+          placeholder={t("goal.addPh")}
+          aria-label={t("goal.addAria")}
           className="flex-1 px-3 py-2 border border-parchment-300 bg-parchment-50 text-sm font-mono text-ink-700 placeholder:text-ink-300 focus:outline-none focus:border-ink-500"
         />
         <button
@@ -102,7 +104,7 @@ export function GoalManager({ goals, onChange }: GoalManagerProps) {
           onClick={addGoal}
           className="px-4 py-2 border border-ink-600 bg-ink-800 text-parchment-100 text-xs uppercase tracking-widest font-mono cursor-pointer hover:bg-ink-700"
         >
-          Add
+          {t("goal.add")}
         </button>
       </div>
     </div>

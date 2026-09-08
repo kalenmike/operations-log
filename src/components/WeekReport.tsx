@@ -2,17 +2,17 @@ import type { ElementType, ReactNode } from "react";
 import { Compass, Zap, BookOpen, HeartHandshake, Users, Circle } from "lucide-react";
 import type { WeekEntry } from "../types";
 import { formatDateDisplay, getWeekDays, getWeekNumber, getDayLabel } from "../lib/dates";
+import { useLang } from "../lib/i18n";
 
 const DOMAIN_ICONS: {
   key: keyof WeekEntry["ratings"];
-  label: string;
   icon: ElementType<{ className?: string }>;
 }[] = [
-  { key: "spiritual", label: "Spiritual", icon: Compass },
-  { key: "physical", label: "Physical", icon: Zap },
-  { key: "intellectual", label: "Intellectual", icon: BookOpen },
-  { key: "emotional", label: "Emotional", icon: HeartHandshake },
-  { key: "social", label: "Social", icon: Users },
+  { key: "spiritual", icon: Compass },
+  { key: "physical", icon: Zap },
+  { key: "intellectual", icon: BookOpen },
+  { key: "emotional", icon: HeartHandshake },
+  { key: "social", icon: Users },
 ];
 
 function SectionTitle({ children }: { children: string }) {
@@ -40,12 +40,13 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 function Objectives({ week, labels }: { week: WeekEntry; labels: string[] }) {
+  const { t } = useLang();
   return (
     <div className="space-y-3">
       {week.goals.map((g) => (
         <div key={g.id}>
           <div className="text-sm text-ink-800">
-            {g.carried && <span className="text-ink-400 text-xs mr-1">[carried]</span>}
+            {g.carried && <span className="text-ink-400 text-xs mr-1">{t("report.carried")}</span>}
             {g.text}
           </div>
           <div className="mt-2 flex gap-1.5">
@@ -71,14 +72,15 @@ function Objectives({ week, labels }: { week: WeekEntry; labels: string[] }) {
 }
 
 function DomainRow({ week }: { week: WeekEntry }) {
+  const { t } = useLang();
   return (
     <div className="grid grid-cols-5 gap-2">
-      {DOMAIN_ICONS.map(({ key, label, icon: Icon }) => {
+      {DOMAIN_ICONS.map(({ key, icon: Icon }) => {
         const val = week.ratings[key];
         return (
           <div key={key} className="flex flex-col items-center gap-1 text-center py-1">
             <Icon className="w-8 h-8 stroke-[1] text-gold-500" />
-            <span className="text-[10px] font-mono uppercase tracking-wider text-ink-500">{label}</span>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-ink-500">{t(`domain.${key}`)}</span>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((n) => (
                 <Circle
@@ -97,13 +99,14 @@ function DomainRow({ week }: { week: WeekEntry }) {
 }
 
 function Checkins({ week }: { week: WeekEntry }) {
+  const { t } = useLang();
   const checkins = week.dailyCheckins.filter(
     (c) => c.reflections.trim() || Number(c.moodRating) > 0
   );
   if (checkins.length === 0) return null;
   return (
     <>
-      <SectionTitle>Daily Check-ins</SectionTitle>
+      <SectionTitle>{t("report.dailyCheckins")}</SectionTitle>
       <div className="space-y-3">
         {checkins.map((c) => (
           <div
@@ -113,7 +116,7 @@ function Checkins({ week }: { week: WeekEntry }) {
             <div className="text-sm text-ink-800">
               {formatDateDisplay(c.date)}
               {Number(c.moodRating) > 0 && (
-                <span className="text-ink-400 font-mono text-xs ml-2">Mood {Number(c.moodRating)}/5</span>
+                <span className="text-ink-400 font-mono text-xs ml-2">{t("report.mood", { n: Number(c.moodRating) })}</span>
               )}
             </div>
             {c.reflections.trim() && (
@@ -127,6 +130,7 @@ function Checkins({ week }: { week: WeekEntry }) {
 }
 
 export function WeekReport({ week }: { week: WeekEntry }) {
+  const { t } = useLang();
   const wkNumber = getWeekNumber(week.startDate);
   const days = getWeekDays(week.startDate);
   const range = `${formatDateDisplay(week.startDate)} – ${formatDateDisplay(
@@ -137,32 +141,33 @@ export function WeekReport({ week }: { week: WeekEntry }) {
   return (
     <div className="print-exact text-ink-800 font-typewriter pb-14">
       <header>
-        <h1 className="text-[26px] tracking-[0.18em] uppercase text-ink-900">Operations Log</h1>
+        <h1 className="text-[26px] tracking-[0.18em] uppercase text-ink-900">{t("report.operationsLog")}</h1>
         <p className="mt-2 text-[11px] tracking-[0.35em] uppercase text-ink-500">
           The Kalen Michael Experiment
         </p>
         <p className="mt-3 font-mono text-xs text-ink-400">
-          Week {wkNumber} · {range}
-          {week.reviewedAt && ` · Closed on ${new Date(week.reviewedAt).toLocaleDateString()}`}
+          {t("report.week", { n: wkNumber })} · {range}
+          {week.reviewedAt &&
+            ` · ${t("report.closedOn", { date: new Date(week.reviewedAt).toLocaleDateString() })}`}
         </p>
         <div className="mt-4 border-b-4 border-double border-ink-800" />
       </header>
 
-      <SectionTitle>Domain Assessment</SectionTitle>
+      <SectionTitle>{t("domain.assessment")}</SectionTitle>
       <Box>
         <DomainRow week={week} />
       </Box>
 
       {week.weeklyGoal.trim() && (
         <>
-          <SectionTitle>Weekly Goal</SectionTitle>
+          <SectionTitle>{t("report.weeklyGoal")}</SectionTitle>
           <Box>{week.weeklyGoal}</Box>
         </>
       )}
 
       {week.goals.length > 0 && (
         <>
-          <SectionTitle>Objectives</SectionTitle>
+          <SectionTitle>{t("report.objectives")}</SectionTitle>
           <Box>
             <Objectives week={week} labels={labels} />
           </Box>
@@ -172,17 +177,17 @@ export function WeekReport({ week }: { week: WeekEntry }) {
       {(week.bestAreaWhy.trim() || week.worstAreaWhy.trim()) && (
         <>
           <div className="break-before-page" />
-          <SectionTitle>Assessment Notes</SectionTitle>
+          <SectionTitle>{t("report.assessmentNotes")}</SectionTitle>
           <Box className="space-y-3">
             {week.bestAreaWhy.trim() && (
               <p>
-                <FieldLabel>Best: </FieldLabel>
+                <FieldLabel>{t("report.best")}</FieldLabel>
                 {week.bestAreaWhy}
               </p>
             )}
             {week.worstAreaWhy.trim() && (
               <p>
-                <FieldLabel>Worst: </FieldLabel>
+                <FieldLabel>{t("report.worst")}</FieldLabel>
                 {week.worstAreaWhy}
               </p>
             )}
@@ -194,23 +199,23 @@ export function WeekReport({ week }: { week: WeekEntry }) {
 
       {(week.weekSummary.trim() || week.wins.trim() || week.review.trim()) && (
         <>
-          <SectionTitle>Reflection</SectionTitle>
+          <SectionTitle>{t("report.reflection")}</SectionTitle>
           <Box className="space-y-3">
             {week.weekSummary.trim() && (
               <p>
-                <FieldLabel>Summary: </FieldLabel>
+                <FieldLabel>{t("report.summary")}</FieldLabel>
                 {week.weekSummary}
               </p>
             )}
             {week.wins.trim() && (
               <p>
-                <FieldLabel>Wins: </FieldLabel>
+                <FieldLabel>{t("report.wins")}</FieldLabel>
                 {week.wins}
               </p>
             )}
             {week.review.trim() && (
               <p>
-                <FieldLabel>Review: </FieldLabel>
+                <FieldLabel>{t("report.review")}</FieldLabel>
                 {week.review}
               </p>
             )}
@@ -220,17 +225,17 @@ export function WeekReport({ week }: { week: WeekEntry }) {
 
       {(week.energyGivers[0] || week.energyDrainers[0]) && (
         <>
-          <SectionTitle>Energy</SectionTitle>
+          <SectionTitle>{t("report.energy")}</SectionTitle>
           <Box className="space-y-3">
             {week.energyGivers[0] && (
               <p>
-                <FieldLabel>Givers: </FieldLabel>
+                <FieldLabel>{t("report.givers")}</FieldLabel>
                 {week.energyGivers.join(", ")}
               </p>
             )}
             {week.energyDrainers[0] && (
               <p>
-                <FieldLabel>Drainers: </FieldLabel>
+                <FieldLabel>{t("report.drainers")}</FieldLabel>
                 {week.energyDrainers.join(", ")}
               </p>
             )}
@@ -240,14 +245,14 @@ export function WeekReport({ week }: { week: WeekEntry }) {
 
       {week.nextWeekQuote.trim() && (
         <>
-          <SectionTitle>Next Week Quote</SectionTitle>
+          <SectionTitle>{t("report.nextWeekQuote")}</SectionTitle>
           <Box className="italic">{week.nextWeekQuote}</Box>
         </>
       )}
 
       {week.carriedNote?.trim() && (
         <>
-          <SectionTitle>One Thing to Carry Forward</SectionTitle>
+          <SectionTitle>{t("report.carryForward")}</SectionTitle>
           <Box>{week.carriedNote}</Box>
         </>
       )}
@@ -256,7 +261,7 @@ export function WeekReport({ week }: { week: WeekEntry }) {
         <div className="grid grid-cols-3 items-center font-mono text-[10px] uppercase tracking-widest text-ink-400">
           <span />
           <span className="text-center">https://log.kalenmichael.com</span>
-          <span className="text-right">Operations Log</span>
+          <span className="text-right">{t("report.operationsLog")}</span>
         </div>
       </footer>
     </div>
